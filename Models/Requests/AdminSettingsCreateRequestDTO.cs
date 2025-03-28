@@ -1,0 +1,11 @@
+﻿namespace NucpaBalloonsApi.Models.Requests
+{
+    public class AdminSettingsCreateRequestDTO
+    {
+        public string AdminUsername { get; set; }
+        public string ContestId { get; set; }
+        public string? CodeforcesApiKey { get; set; }
+        public string? CodeforcesApiSecret { get; set; }
+        public bool IsEnabled { get; set; }
+    }
+}
