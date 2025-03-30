@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MainPage } from './pages/MainPage';
-import { AdminSettingsPage } from './pages/AdminSettingsPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
 import { LoginPage } from './pages/LoginPage';
+import { Navbar } from './components/Navbar';
 
 const theme = createTheme({
   palette: {
@@ -24,6 +25,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
+        <Navbar />
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/login" element={<LoginPage />} />

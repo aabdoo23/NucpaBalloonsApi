@@ -1,4 +1,4 @@
-﻿namespace NucpaBalloonsApi.Models.Requests
+﻿namespace NucpaBalloonsApi.Models.Requests.Rooms
 {
     public class RoomCreateRequestDTO
     {

@@ -1,4 +1,4 @@
-﻿using NucpaBalloonsApi.Models.Requests;
+﻿using NucpaBalloonsApi.Models.Requests.ProblemBalloonMaps;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Interfaces.Services

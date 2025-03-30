@@ -1,6 +1,6 @@
 ﻿using NucpaBalloonsApi.Interfaces.Repositories;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.Teams;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services

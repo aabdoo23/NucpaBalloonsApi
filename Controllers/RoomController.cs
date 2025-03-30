@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.Rooms;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Controllers
@@ -39,11 +39,10 @@ namespace NucpaBalloonsApi.Controllers
             }
         }
 
-        [HttpPost("update")]
-        public async Task<IActionResult> Update([FromBody] Room room)
+        [HttpPost("delete")]
+        public async Task Update(string RoomId)
         {
-            var updatedRoom = await _roomsService.UpdateAsync(room);
-            return Ok(updatedRoom);
+            await _roomsService.DeleteAsync(RoomId);
         }
 
     }

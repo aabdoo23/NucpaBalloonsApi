@@ -1,6 +1,6 @@
 ﻿using NucpaBalloonsApi.Interfaces.Repositories.Common;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.Rooms;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services
@@ -42,9 +42,14 @@ namespace NucpaBalloonsApi.Services
             return _roomsRepository.GetByIdAsync(id);
         }
 
-        public async Task<Room> UpdateAsync(Room room)
+        public async Task DeleteAsync(string roomId)
         {
-            return await _roomsRepository.UpdateAsync(room);
+            var room = await _roomsRepository.GetByIdAsync(roomId);
+            if (room == null)
+            {
+                throw new InvalidOperationException($"A room with the id '{roomId}' does not exist.");
+            }
+            await _roomsRepository.DeleteAsync(roomId);
         }
     }
 }

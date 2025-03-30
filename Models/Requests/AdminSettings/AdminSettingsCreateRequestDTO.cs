@@ -1,4 +1,4 @@
-﻿namespace NucpaBalloonsApi.Models.Requests
+﻿namespace NucpaBalloonsApi.Models.Requests.AdminSettings
 {
     public class AdminSettingsCreateRequestDTO
     {

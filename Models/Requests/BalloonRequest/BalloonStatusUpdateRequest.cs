@@ -1,6 +1,6 @@
 using NucpaBalloonsApi.Models.SystemModels;
 
-namespace NucpaBalloonsApi.Models.Requests;
+namespace NucpaBalloonsApi.Models.Requests.BalloonRequest;
 
 public class BalloonStatusUpdateRequest
 {

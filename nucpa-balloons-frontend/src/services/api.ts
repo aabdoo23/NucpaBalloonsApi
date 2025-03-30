@@ -1,5 +1,14 @@
 import axios from 'axios';
-import { AdminSettings, ProblemBalloonMap, LoginRequest, BalloonRequestDTO, BalloonStatusUpdateRequest, AdminSettingsResponse } from '../types';
+import { 
+  AdminSettings, 
+  ProblemBalloonMap, 
+  LoginRequest, 
+  BalloonRequestDTO, 
+  BalloonStatusUpdateRequest, 
+  AdminSettingsResponse, 
+  Room, 
+  Team 
+} from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -75,12 +84,27 @@ export const updateBalloonStatus = async (id: string, request: BalloonStatusUpda
 
 export const getAllAdminSettings = async () => {
   const response = await api.get('/admin/settings/getAll');
-  return response.data as AdminSettingsResponse;
+  const data = response.data;
+  return {
+    ...data,
+    $values: Array.isArray(data.$values) ? data.$values.map((settings: any) => ({
+      ...settings,
+      teams: Array.isArray(settings.teams?.$values) ? settings.teams.$values : [],
+      rooms: Array.isArray(settings.rooms?.$values) ? settings.rooms.$values : [],
+      problemBalloonMaps: Array.isArray(settings.problemBalloonMaps?.$values) ? settings.problemBalloonMaps.$values : []
+    })) : []
+  } as AdminSettingsResponse;
 };
 
 export const getActiveAdminSettings = async () => {
   const response = await api.get('/admin/settings/getActive');
-  return response.data as AdminSettings;
+  const data = response.data;
+  return {
+    ...data,
+    teams: Array.isArray(data.teams?.$values) ? data.teams.$values : [],
+    rooms: Array.isArray(data.rooms?.$values) ? data.rooms.$values : [],
+    problemBalloonMaps: Array.isArray(data.problemBalloonMaps?.$values) ? data.problemBalloonMaps.$values : []
+  } as AdminSettings;
 };
 
 export const createAdminSettings = async (settings: Omit<AdminSettings, 'id'>) => {
@@ -92,4 +116,45 @@ export const setActiveAdminSettings = async (id: string) => {
   await api.post('/admin/settings/enable', null, {
     params: { id }
   });
+};
+
+export const getAllRooms = async () => {
+  const response = await api.get('/admin/settings/room/getAll');
+  return Array.isArray(response.data.$values) ? response.data.$values : response.data;
+};
+
+export const createRoom = async (room: { name: string; capacity?: number; isAvailable?: boolean }) => {
+  const response = await api.post('/admin/settings/room/create', room);
+  return response.data as Room;
+};
+
+export const deleteRoom = async (roomId: string) => {
+  await api.post('/admin/settings/room/delete', null, {
+    params: { roomId }
+  });
+};
+
+export const createTeam = async (team: { id: string; codeforcesHandle: string; roomId: string }) => {
+  const response = await api.post('/admin/settings/team/createTeam', team);
+  return response.data as Team;
+};
+
+export const deleteTeam = async (teamId: string) => {
+  await api.post('/admin/settings/team/deleteTeam', null, {
+    params: { teamId }
+  });
+};
+
+export const updateTeamRoom = async (teamId: string, roomId: string) => {
+  const response = await api.post('/admin/settings/team/updateTeamRoom', null, {
+    params: { teamId, roomId }
+  });
+  return response.data as Team;
+};
+
+export const getTeamById = async (teamId: string) => {
+  const response = await api.get('/admin/settings/team/getById', {
+    params: { teamId }
+  });
+  return response.data as Team;
 }; 

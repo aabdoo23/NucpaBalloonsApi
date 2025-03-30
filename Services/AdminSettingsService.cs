@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NucpaBalloonsApi.Interfaces.Repositories.Common;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.AdminSettings;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.DTOs;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.BalloonRequest;
 using NucpaBalloonsApi.Models.SystemModels;
 
 //just for testing

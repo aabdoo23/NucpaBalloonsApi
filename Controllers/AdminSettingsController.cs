@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.DTOs;
+using NucpaBalloonsApi.Models.Requests.AdminSettings;
 
 namespace NucpaBalloonsApi.Controllers
 {

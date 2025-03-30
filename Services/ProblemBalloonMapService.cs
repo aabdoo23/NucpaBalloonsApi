@@ -1,6 +1,6 @@
 ﻿using NucpaBalloonsApi.Interfaces.Repositories.Common;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.Requests;
+using NucpaBalloonsApi.Models.Requests.ProblemBalloonMaps;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services

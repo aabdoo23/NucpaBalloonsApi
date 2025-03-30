@@ -48,9 +48,9 @@ namespace NucpaBalloonsApi.Services
                     Console.WriteLine("new team, creating one");
                     team = new Team
                     {
-                        Id = Guid.NewGuid().ToString(),
+                        Id = ,
                         CodeforcesHandle = submission.Author.Members.FirstOrDefault().Handle,
-                        RoomId = null,
+                        RoomId = _context.Rooms.First().Id,
                         AdminSettingsId = activeSettings.Id
                     };
                     _context.Teams.Add(team);
