@@ -12,7 +12,7 @@ namespace NucpaBalloonsApi.Repositories
         public TeamRepository(NucpaDbContext context) : base(context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _ = LoadTeamCacheAsync();
+            //_ = LoadTeamCacheAsync();
         }
 
         public async Task LoadTeamCacheAsync()
@@ -81,19 +81,6 @@ namespace NucpaBalloonsApi.Repositories
         public async Task RefreshCacheAsync()
         {
             await LoadTeamCacheAsync();
-        }
-
-        public async Task<IList<string>> InsertBulkAsync(IList<Team> teams)
-        {
-            var teamIds = new List<string>();
-            foreach (var team in teams)
-            {
-                teamIds.Add(team.Id);
-                _teamCache[team.CodeforcesHandle] = team.Id;
-            }
-            await _context.Teams.AddRangeAsync(teams);
-            await _context.SaveChangesAsync();
-            return teamIds;
         }
     }
 }

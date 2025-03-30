@@ -29,23 +29,31 @@ namespace NucpaBalloonsApi.Services
 
         public async Task ProcessNewSubmissions(List<Submission> submissions)
         {
+            Console.WriteLine("processign");
             if (!submissions.Any()) return;
-
+            Console.WriteLine("some subs");
             var activeSettings = await _adminSettingsService.GetActiveAdminSettings();
             var problemBalloonMaps = activeSettings.ProblemBalloonMaps.ToDictionary(x => x.ProblemIndex, x => x.BalloonColor);
 
             foreach (var submission in submissions.OrderBy(s => s.Id))
             {
-                if (submission.Id <= _lastProcessedSubmissionId) continue;
+                if (submission.Id <= _lastProcessedSubmissionId) { Console.WriteLine("lastprocessed"+_lastProcessedSubmissionId); continue; }
 
-                if (submission.Verdict != "OK") continue;
+                if (submission.Verdict != "OK") { Console.WriteLine("not true verdict"); continue; }
 
                 var team = await _context.Teams
                     .FirstOrDefaultAsync(t => t.CodeforcesHandle == submission.Author.Members.FirstOrDefault().Handle);
 
                 if (team == null) {
-                    Console.WriteLine("team issue");
-                    continue; 
+                    Console.WriteLine("new team, creating one");
+                    team = new Team
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        CodeforcesHandle = submission.Author.Members.FirstOrDefault().Handle,
+                        RoomId = null,
+                        AdminSettingsId = activeSettings.Id
+                    };
+                    _context.Teams.Add(team);
                 }
 
                 if (!problemBalloonMaps.TryGetValue(submission.Problem.Index, out var balloonColor)) continue;
@@ -53,7 +61,7 @@ namespace NucpaBalloonsApi.Services
                 var existingRequest = await _context.BalloonRequests
                     .FirstOrDefaultAsync(b => b.SubmissionId == submission.Id);
 
-                if (existingRequest != null) continue;
+                if (existingRequest != null){ Console.WriteLine("already existing"); continue; }
 
                 var request = new BalloonRequest
                 {
@@ -65,6 +73,7 @@ namespace NucpaBalloonsApi.Services
                     Status = BalloonStatus.Pending,
                     Timestamp = DateTime.UtcNow
                 };
+                Console.WriteLine(request.SubmissionId);
 
                 _context.BalloonRequests.Add(request);
             }
@@ -73,7 +82,7 @@ namespace NucpaBalloonsApi.Services
             _lastProcessedSubmissionId = submissions.Max(s => s.Id);
         }
 
-        public async Task<BalloonRequest?> UpdateBalloonStatusAsync(int id, BalloonStatus status, string? deliveredBy = null)
+        public async Task<BalloonRequest?> UpdateBalloonStatusAsync(string id, BalloonStatus status, string? deliveredBy = null)
         {
             var request = await _context.BalloonRequests.FindAsync(id);
             if (request == null) return null;
@@ -89,22 +98,51 @@ namespace NucpaBalloonsApi.Services
             return request;
         }
 
-        public async Task<List<BalloonRequest>> GetPendingBalloonsAsync()
+        public async Task<List<BalloonRequestDTO>> GetPendingBalloonsAsync()
         {
-            return await _context.BalloonRequests
+            var pending = await _context.BalloonRequests
                 .Include(b => b.Team)
                 .Where(b => b.Status == BalloonStatus.Pending)
                 .OrderByDescending(b => b.Timestamp)
                 .ToListAsync();
+
+            return pending.Select(b => new BalloonRequestDTO
+            {
+                Id = b.Id,
+                TeamName = b.Team.CodeforcesHandle,
+                ProblemIndex = b.ProblemIndex,
+                BalloonColor = b.BalloonColor,
+                Timestamp = b.Timestamp,
+                Status = b.Status.ToString(),
+                DeliveredBy = b.DeliveredBy,
+                DeliveredAt = b.DeliveredAt,
+                TeamId = b.TeamId,
+                SubmissionId = b.SubmissionId
+            }).ToList();
+
         }
 
-        public async Task<List<BalloonRequest>> GetDeliveredBalloonsAsync()
+        public async Task<List<BalloonRequestDTO>> GetDeliveredBalloonsAsync()
         {
-            return await _context.BalloonRequests
+            var delivered = await _context.BalloonRequests
                 .Include(b => b.Team)
                 .Where(b => b.Status == BalloonStatus.Delivered)
                 .OrderByDescending(b => b.DeliveredAt)
                 .ToListAsync();
+
+            return delivered.Select(b => new BalloonRequestDTO
+            {
+                Id = b.Id,
+                TeamName = b.Team.CodeforcesHandle,
+                ProblemIndex = b.ProblemIndex,
+                BalloonColor = b.BalloonColor,
+                Timestamp = b.Timestamp,
+                Status = b.Status.ToString(),
+                DeliveredBy = b.DeliveredBy,
+                DeliveredAt = b.DeliveredAt,
+                TeamId = b.TeamId,
+                SubmissionId = b.SubmissionId
+            }).ToList();
         }
 
         public async Task<BalloonStatisticsDTO> GetStatisticsAsync()

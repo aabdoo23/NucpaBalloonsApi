@@ -70,11 +70,13 @@ builder.Services.AddScoped<IBalloonService, BalloonService>();
 builder.Services.AddScoped<IAdminSettingsService, AdminSettingsService>();
 builder.Services.AddScoped<IRoomsService, RoomsService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
+builder.Services.AddScoped<IProblemBalloonMapService, ProblemBalloonMapService>();
 
 builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();
 builder.Services.AddScoped<IBaseRepository<Room>, BaseRepository<Room>>();
 builder.Services.AddScoped<IBaseRepository<Team>, BaseRepository<Team>>();
-builder.Services.AddScoped<IAdminSettingsRepository, AdminSettingsRepository>();
+builder.Services.AddScoped<IBaseRepository<ProblemBalloonMap>, BaseRepository<ProblemBalloonMap>>();
+builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 
 // Configure HttpClient with longer lifetime

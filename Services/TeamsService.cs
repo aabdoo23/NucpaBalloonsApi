@@ -1,5 +1,6 @@
 ﻿using NucpaBalloonsApi.Interfaces.Repositories;
 using NucpaBalloonsApi.Interfaces.Services;
+using NucpaBalloonsApi.Models.Requests;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services
@@ -11,22 +12,21 @@ namespace NucpaBalloonsApi.Services
         private readonly IAdminSettingsService _adminSettingsService = adminSettingsService ??
             throw new ArgumentNullException(nameof(adminSettingsService));
 
-        public async Task<Team> CreateTeam(Team team)
+        public async Task<Team> CreateTeam(TeamCreateRequestDTO teamDto)
         {
-            team.Id = Guid.NewGuid().ToString();
-            team.AdminSettingsId = (await _adminSettingsService.GetActiveAdminSettings()).Id;
+            var activeAdminSettings = await _adminSettingsService.GetActiveAdminSettings();
+
+            var team = new Team
+            {
+                Id = teamDto.Id,
+                CodeforcesHandle = teamDto.CodeforcesHandle,
+                RoomId = teamDto.RoomId,
+                AdminSettingsId = activeAdminSettings.Id
+            };
+
             return await _repository.InsertAsync(team);
         }
 
-        public async Task<IList<string>> InsertBulkTeams(IList<Team> teams)
-        {
-            foreach (var team in teams)
-            {
-                team.Id = Guid.NewGuid().ToString();
-                team.AdminSettingsId = (await _adminSettingsService.GetActiveAdminSettings()).Id;
-            }
-            return await _repository.InsertBulkAsync(teams);
-        }
 
         public async Task DeleteTeamById(string teamId)
         {

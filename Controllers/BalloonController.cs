@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using NucpaBalloonsApi.Hubs;
+//using NucpaBalloonsApi.Hubs;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.DTOs;
 using NucpaBalloonsApi.Models.SystemModels;
@@ -9,10 +9,12 @@ namespace NucpaBalloonsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BalloonController(IBalloonService balloonService, IHubContext<BalloonHub> hubContext) : ControllerBase
+    public class BalloonController(IBalloonService balloonService
+        //,IHubContext<BalloonHub> hubContext
+        ) : ControllerBase
     {
         private readonly IBalloonService _balloonService = balloonService;
-        private readonly IHubContext<BalloonHub> _hubContext = hubContext;
+        //private readonly IHubContext<BalloonHub> _hubContext = hubContext;
 
         [HttpPost]
         public async Task<IActionResult> CreateBalloonRequest([FromBody] BalloonRequest request)
@@ -31,27 +33,27 @@ namespace NucpaBalloonsApi.Controllers
 
         [HttpPut("{id}/status")]
         public async Task<ActionResult<BalloonRequest>> UpdateStatus(
-            int id,
+            string id,
             [FromBody] BalloonStatus status,
             [FromQuery] string? deliveredBy = null)
         {
             var request = await _balloonService.UpdateBalloonStatusAsync(id, status, deliveredBy);
             if (request == null) return NotFound();
 
-            await _hubContext.Clients.All.SendAsync("BalloonStatusUpdated", request);
+            //await _hubContext.Clients.All.SendAsync("BalloonStatusUpdated", request);
             await UpdateStatistics();
             
             return Ok(request);
         }
 
         [HttpGet("pending")]
-        public async Task<ActionResult<List<BalloonRequest>>> GetPendingBalloons()
+        public async Task<ActionResult<List<BalloonRequestDTO>>> GetPendingBalloons()
         {
             return await _balloonService.GetPendingBalloonsAsync();
         }
 
         [HttpGet("delivered")]
-        public async Task<ActionResult<List<BalloonRequest>>> GetDeliveredBalloons()
+        public async Task<ActionResult<List<BalloonRequestDTO>>> GetDeliveredBalloons()
         {
             return await _balloonService.GetDeliveredBalloonsAsync();
         }
@@ -65,7 +67,7 @@ namespace NucpaBalloonsApi.Controllers
         private async Task UpdateStatistics()
         {
             var stats = await _balloonService.GetStatisticsAsync();
-            await _hubContext.Clients.All.SendAsync("StatisticsUpdated", stats);
+            //await _hubContext.Clients.All.SendAsync("StatisticsUpdated", stats);
         }
     }
 } 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NucpaBalloonsApi.Interfaces.Services;
+using NucpaBalloonsApi.Models.Requests;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Controllers
@@ -20,9 +21,9 @@ namespace NucpaBalloonsApi.Controllers
         }
 
         [HttpPost("createTeam")]
-        public async Task<IActionResult> CreateTeam(Team team)
+        public async Task<IActionResult> CreateTeam(TeamCreateRequestDTO team)
         {
-            return Ok(await _teamsService.CreateTeam(team));
+            return Ok(await _teamsService.CreateTeam(team)); //call here
         }
 
         [HttpPost("deleteTeam")]

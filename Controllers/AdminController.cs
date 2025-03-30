@@ -6,12 +6,14 @@ namespace NucpaBalloonsApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AdminController(IAdminService adminService, ILogger<AdminController> logger) : ControllerBase
+public class AdminController(IAdminService adminService, ILogger<AdminController> logger, ICodeforcesApiService codeforcesApiService) : ControllerBase
 {
     private readonly IAdminService _adminService = adminService
         ?? throw new ArgumentNullException(nameof(adminService));
     private readonly ILogger<AdminController> _logger = logger
         ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ICodeforcesApiService _codeforcesApiService = codeforcesApiService
+        ?? throw new ArgumentNullException(nameof(codeforcesApiService));
 
     [HttpPost("login")]
     public ActionResult<LoginResponseDTO> Login([FromBody] LoginRequestDTO request)
@@ -41,5 +43,12 @@ public class AdminController(IAdminService adminService, ILogger<AdminController
                 Message = "Internal server error"
             });
         }
+    }
+
+    [HttpGet("test")]
+    public async Task<IActionResult> Test(int contestId)
+    {
+        var submissions = await _codeforcesApiService.FetchNewSubmissions(contestId);
+        return Ok(submissions);
     }
 }

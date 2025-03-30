@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NucpaBalloonsApi.Interfaces.Repositories;
 using NucpaBalloonsApi.Interfaces.Repositories.Common;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.Requests;
@@ -7,9 +6,9 @@ using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services
 {
-    public class AdminSettingsService(IAdminSettingsRepository adminSettingsRepository, NucpaDbContext nucpaDbContext) : IAdminSettingsService
+    public class AdminSettingsService(IBaseRepository<AdminSettings> adminSettingsRepository, NucpaDbContext nucpaDbContext) : IAdminSettingsService
     {
-        private readonly IAdminSettingsRepository _adminSettingsRepository = adminSettingsRepository
+        private readonly IBaseRepository<AdminSettings> _adminSettingsRepository = adminSettingsRepository
                 ?? throw new ArgumentNullException(nameof(adminSettingsRepository));
 
         private readonly NucpaDbContext _context = nucpaDbContext
@@ -51,7 +50,7 @@ namespace NucpaBalloonsApi.Services
 
                 await _adminSettingsRepository.InsertAsync(settings);
 
-                await transaction.CommitAsync(); 
+                await transaction.CommitAsync();
                 return settings;
             }
             catch
@@ -90,28 +89,28 @@ namespace NucpaBalloonsApi.Services
             }
         }
 
-
-
         public async Task<AdminSettings> UpdateAsync(AdminSettingsUpdateRequestDTO settings)
         {
-            var originalSettings = await _adminSettingsRepository.GetByIdAsync(settings.Id);
-
-            if (originalSettings == null)
-            {
-                throw new InvalidOperationException("Settings not found");
-            }
+            var originalSettings = await _adminSettingsRepository.GetByIdAsync(settings.Id)
+                ?? throw new InvalidOperationException("Settings not found");
 
             originalSettings.AdminUsername = settings.AdminUsername ?? originalSettings.AdminUsername;
             originalSettings.ContestId = settings.ContestId ?? originalSettings.ContestId;
             originalSettings.CodeforcesApiKey = settings.CodeforcesApiKey ?? originalSettings.CodeforcesApiKey;
             originalSettings.CodeforcesApiSecret = settings.CodeforcesApiSecret ?? originalSettings.CodeforcesApiSecret;
+            originalSettings.IsEnabled = settings.IsEnabled ?? originalSettings.IsEnabled;
 
             return await _adminSettingsRepository.UpdateAsync(originalSettings);
         }
 
         public async Task<AdminSettings> GetActiveAdminSettings()
         {
-            return await _adminSettingsRepository.GetActiveAdminSettings();
+            return await _context.AdminSettings
+                .AsNoTracking()
+                .Include(s => s.ProblemBalloonMaps)
+                .Include(s => s.Rooms)
+                .Include(s => s.Teams)
+                .FirstOrDefaultAsync(s => s.IsEnabled);
         }
 
     }

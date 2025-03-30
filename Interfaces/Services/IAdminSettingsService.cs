@@ -6,7 +6,6 @@ namespace NucpaBalloonsApi.Interfaces.Services
     public interface IAdminSettingsService
     {
         Task<List<AdminSettings>> GetAllAsync();
-        Task<AdminSettings?> GetByIdAsync(string id);
         Task<AdminSettings> UpdateAsync(AdminSettingsUpdateRequestDTO settings);
         Task<AdminSettings> CreateAsync(AdminSettingsCreateRequestDTO settings);
         Task SetActiveAsync(string id);
