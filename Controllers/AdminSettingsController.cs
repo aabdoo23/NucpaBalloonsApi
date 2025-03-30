@@ -7,7 +7,7 @@ namespace NucpaBalloonsApi.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("admin/settings")]
+    [Route("api/admin/settings")]
     public class AdminSettingsController(IAdminSettingsService adminSettingsService) : ControllerBase
     {
         private readonly IAdminSettingsService _adminSettingsService = adminSettingsService

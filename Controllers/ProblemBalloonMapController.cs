@@ -8,7 +8,7 @@ namespace NucpaBalloonsApi.Controllers
 {
     //[Authorize]
     [ApiController]
-    [Route("admin/settings/[controller]")]
+    [Route("api/admin/settings/[controller]")]
     public class ProblemBalloonMapController(IProblemBalloonMapService problemBalloonMapService) : ControllerBase
     {
         private readonly IProblemBalloonMapService _problemBalloonMapService = problemBalloonMapService

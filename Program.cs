@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NucpaBalloonsApi;
+using NucpaBalloonsApi.Hubs;
 using NucpaBalloonsApi.Interfaces.Repositories;
 using NucpaBalloonsApi.Interfaces.Repositories.Common;
 using NucpaBalloonsApi.Interfaces.Services;
@@ -33,10 +34,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.WithOrigins("http://localhost:3000")
+        builder.SetIsOriginAllowed(_ => true) // Allow any origin during development
                .AllowAnyMethod()
                .AllowAnyHeader()
-               .AllowCredentials();
+               .AllowCredentials()
+               .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -61,7 +63,11 @@ builder.Services.AddAuthentication(x =>
 });
 
 // Add SignalR
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.MaximumReceiveMessageSize = 102400; // 100 KB
+});
 
 // Register services
 builder.Services.AddScoped<ICodeforcesApiService, CodeforcesApiService>();
@@ -71,6 +77,7 @@ builder.Services.AddScoped<IAdminSettingsService, AdminSettingsService>();
 builder.Services.AddScoped<IRoomsService, RoomsService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
 builder.Services.AddScoped<IProblemBalloonMapService, ProblemBalloonMapService>();
+builder.Services.AddHostedService<BalloonUpdateService>();
 
 builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();
 builder.Services.AddScoped<IBaseRepository<Room>, BaseRepository<Room>>();
@@ -100,11 +107,18 @@ else
 // Use CORS before routing
 app.UseCors("AllowAll");
 
+// Add WebSocket support
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+});
+
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<BalloonHub>("/api/balloonHub");
 
 app.Run();
 

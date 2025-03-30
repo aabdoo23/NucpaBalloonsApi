@@ -12,5 +12,7 @@
         public DateTime Timestamp { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public string? DeliveredBy { get; set; }
+        public DateTime? PickedUpAt { get; set; }
+        public string? PickedUpBy { get; set; }
     }
 }

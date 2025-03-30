@@ -1,55 +1,37 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-//using NucpaBalloonsApi.Hubs;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.DTOs;
+using NucpaBalloonsApi.Models.Requests;
 using NucpaBalloonsApi.Models.SystemModels;
 
+//just for testing
 namespace NucpaBalloonsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BalloonController(IBalloonService balloonService
-        //,IHubContext<BalloonHub> hubContext
-        ) : ControllerBase
+    public class BalloonController(IBalloonService balloonService) : ControllerBase
     {
         private readonly IBalloonService _balloonService = balloonService;
-        //private readonly IHubContext<BalloonHub> _hubContext = hubContext;
 
-        [HttpPost]
-        public async Task<IActionResult> CreateBalloonRequest([FromBody] BalloonRequest request)
+        [HttpPut("status")]
+        public async Task<ActionResult<BalloonRequest>> UpdateStatus(BalloonStatusUpdateRequest request)
         {
-            //var newRequest = await _balloonService.CreateBalloonRequestAsync(
-            //    //request.TeamName,
-            //    //request.ProblemSolved,
-            //    request.BalloonColor
-            //);
-
-            //await _hubContext.Clients.All.SendAsync("BalloonRequestCreated", newRequest);
-            await UpdateStatistics();
+            var requeste = await _balloonService.UpdateBalloonStatusAsync(request.Id, request.Status, request.DeliveredBy);
+            if (requeste == null) return NotFound();
             
-            return Ok();
-        }
-
-        [HttpPut("{id}/status")]
-        public async Task<ActionResult<BalloonRequest>> UpdateStatus(
-            string id,
-            [FromBody] BalloonStatus status,
-            [FromQuery] string? deliveredBy = null)
-        {
-            var request = await _balloonService.UpdateBalloonStatusAsync(id, status, deliveredBy);
-            if (request == null) return NotFound();
-
-            //await _hubContext.Clients.All.SendAsync("BalloonStatusUpdated", request);
-            await UpdateStatistics();
-            
-            return Ok(request);
+            return Ok(requeste);
         }
 
         [HttpGet("pending")]
         public async Task<ActionResult<List<BalloonRequestDTO>>> GetPendingBalloons()
         {
             return await _balloonService.GetPendingBalloonsAsync();
+        }
+
+        [HttpGet("picked-up")]
+        public async Task<ActionResult<List<BalloonRequestDTO>>> GetPickedUpBalloons()
+        {
+            return await _balloonService.GetPickedUpBalloonsAsync();
         }
 
         [HttpGet("delivered")]
@@ -67,7 +49,6 @@ namespace NucpaBalloonsApi.Controllers
         private async Task UpdateStatistics()
         {
             var stats = await _balloonService.GetStatisticsAsync();
-            //await _hubContext.Clients.All.SendAsync("StatisticsUpdated", stats);
         }
     }
 } 

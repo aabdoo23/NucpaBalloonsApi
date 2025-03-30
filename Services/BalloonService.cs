@@ -145,6 +145,31 @@ namespace NucpaBalloonsApi.Services
             }).ToList();
         }
 
+        public async Task<List<BalloonRequestDTO>> GetPickedUpBalloonsAsync()
+        {
+            var pickedUp = await _context.BalloonRequests
+                .Include(b => b.Team)
+                .Where(b => b.Status == BalloonStatus.PickedUp)
+                .OrderByDescending(b => b.PickedUpAt)
+                .ToListAsync();
+
+            return pickedUp.Select(b => new BalloonRequestDTO
+            {
+                Id = b.Id,
+                TeamName = b.Team.CodeforcesHandle,
+                ProblemIndex = b.ProblemIndex,
+                BalloonColor = b.BalloonColor,
+                Timestamp = b.Timestamp,
+                Status = b.Status.ToString(),
+                DeliveredBy = b.DeliveredBy,
+                DeliveredAt = b.DeliveredAt,
+                TeamId = b.TeamId,
+                SubmissionId = b.SubmissionId,
+                PickedUpAt = b.PickedUpAt,
+                PickedUpBy = b.PickedUpBy
+            }).ToList();
+        }
+
         public async Task<BalloonStatisticsDTO> GetStatisticsAsync()
         {
             var stats = new BalloonStatisticsDTO

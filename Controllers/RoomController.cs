@@ -8,7 +8,7 @@ namespace NucpaBalloonsApi.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("admin/settings/[controller]")]
+    [Route("api/admin/settings/[controller]")]
     public class RoomController(IRoomsService roomsService) : ControllerBase
     {
         private readonly IRoomsService _roomsService = roomsService

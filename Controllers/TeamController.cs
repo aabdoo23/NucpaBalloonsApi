@@ -7,7 +7,7 @@ using NucpaBalloonsApi.Models.SystemModels;
 namespace NucpaBalloonsApi.Controllers
 {
     [Authorize]
-    [Route("admin/settings/team")]
+    [Route("api/admin/settings/team")]
     [ApiController]
     public class TeamController(ITeamsService teamsService) : ControllerBase
     {
