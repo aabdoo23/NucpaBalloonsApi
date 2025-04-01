@@ -13,9 +13,13 @@ class SignalRService {
   private maxReconnectAttempts = 5;
 
   public async startConnection() {
-    if (this.connection) return;
+    if (this.connection) {
+      console.log('SignalR connection already exists');
+      return;
+    }
 
     try {
+      console.log('Starting SignalR connection...');
       this.connection = new HubConnectionBuilder()
         .withUrl('/api/balloonHub', {
           withCredentials: true,
@@ -44,7 +48,7 @@ class SignalRService {
       });
 
       await this.connection.start();
-      console.log('SignalR connection started successfully');
+      console.log('SignalR connection started successfully with ID:', this.connection.connectionId);
     } catch (error) {
       console.error('Error starting SignalR connection:', error);
       this.stopConnection();
@@ -65,17 +69,55 @@ class SignalRService {
   }
 
   public onReceiveBalloonUpdates(callback: (updates: BalloonUpdates) => void) {
-    if (!this.connection) return;
+    if (!this.connection) {
+      console.error('Cannot register callback: SignalR connection not established');
+      return;
+    }
 
-    this.connection.on('ReceiveBalloonUpdates', callback);
-    console.log('Registered ReceiveBalloonUpdates callback');
+    console.log('Registering ReceiveBalloonUpdates callback...');
+    this.connection.on('ReceiveBalloonUpdates', (updates: BalloonUpdates) => {
+      console.log('Received balloon updates through SignalR:', updates);
+      callback(updates);
+    });
+    console.log('ReceiveBalloonUpdates callback registered');
+  }
+
+  public onBalloonStatusChanged(callback: (updates: BalloonUpdates) => void) {
+    if (!this.connection) {
+      console.error('Cannot register callback: SignalR connection not established');
+      return;
+    }
+
+    console.log('Registering BalloonStatusChanged callback...');
+    this.connection.on('BalloonStatusChanged', (updates: BalloonUpdates) => {
+      console.log('Received balloon status change through SignalR:', updates);
+      callback(updates);
+    });
+    console.log('BalloonStatusChanged callback registered');
+  }
+
+  public offBalloonStatusChanged(callback: (updates: BalloonUpdates) => void) {
+    if (!this.connection) {
+      console.error('Cannot unregister callback: SignalR connection not established');
+      return;
+    }
+
+    this.connection.off('BalloonStatusChanged', callback);
+    console.log('Unregistered BalloonStatusChanged callback');
   }
 
   public offReceiveBalloonUpdates(callback: (updates: BalloonUpdates) => void) {
-    if (!this.connection) return;
+    if (!this.connection) {
+      console.error('Cannot unregister callback: SignalR connection not established');
+      return;
+    }
 
     this.connection.off('ReceiveBalloonUpdates', callback);
     console.log('Unregistered ReceiveBalloonUpdates callback');
+  }
+
+  public isConnected(): boolean {
+    return this.connection?.state === 'Connected';
   }
 }
 

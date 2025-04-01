@@ -9,4 +9,9 @@ public class BalloonHub : Hub
     {
         await Clients.All.SendAsync("ReceiveBalloonUpdates", balloons);
     }
+
+    public async Task UpdateStatus()
+    {
+        await Clients.All.SendAsync("BalloonStatusChanged");
+    }
 } 

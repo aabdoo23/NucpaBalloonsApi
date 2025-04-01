@@ -111,16 +111,10 @@ namespace NucpaBalloonsApi.Services
             if (request == null) return null;
 
             request.Status = status;
-            if (status == BalloonStatus.Delivered)
-            {
-                request.DeliveredAt = DateTime.UtcNow;
-                request.DeliveredBy = deliveredBy;
-            }
-            else if (status == BalloonStatus.PickedUp)
-            {
-                request.PickedUpAt = DateTime.UtcNow;
-                request.PickedUpBy = deliveredBy;
-            }
+
+            request.StatusChangedAt = DateTime.UtcNow;
+            request.StatusChangedBy = deliveredBy;
+            
 
             await _context.SaveChangesAsync();
 
@@ -129,7 +123,7 @@ namespace NucpaBalloonsApi.Services
             var pickedUpBalloons = await GetPickedUpBalloonsAsync();
             var deliveredBalloons = await GetDeliveredBalloonsAsync();
 
-            await _hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", new
+            await _hubContext.Clients.All.SendAsync("BalloonStatusChanged", new
             {
                 Pending = pendingBalloons,
                 PickedUp = pickedUpBalloons,
@@ -138,7 +132,7 @@ namespace NucpaBalloonsApi.Services
 
             return request;
         }
-
+        
         public async Task<List<BalloonRequestDTO>> GetPendingBalloonsAsync()
         {
             var pending = await _context.BalloonRequests
@@ -155,8 +149,8 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 Timestamp = b.Timestamp,
                 Status = b.Status.ToString(),
-                DeliveredBy = b.DeliveredBy,
-                DeliveredAt = b.DeliveredAt,
+                StatusChangedBy = b.StatusChangedBy,
+                StatusChangedAt = b.StatusChangedAt,
                 TeamId = b.TeamId,
                 SubmissionId = b.SubmissionId
             }).ToList();
@@ -168,7 +162,7 @@ namespace NucpaBalloonsApi.Services
             var delivered = await _context.BalloonRequests
                 .Include(b => b.Team)
                 .Where(b => b.Status == BalloonStatus.Delivered)
-                .OrderByDescending(b => b.DeliveredAt)
+                .OrderByDescending(b => b.StatusChangedAt)
                 .ToListAsync();
 
             return delivered.Select(b => new BalloonRequestDTO
@@ -179,8 +173,8 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 Timestamp = b.Timestamp,
                 Status = b.Status.ToString(),
-                DeliveredBy = b.DeliveredBy,
-                DeliveredAt = b.DeliveredAt,
+                StatusChangedAt = b.StatusChangedAt,
+                StatusChangedBy = b.StatusChangedBy,
                 TeamId = b.TeamId,
                 SubmissionId = b.SubmissionId
             }).ToList();
@@ -191,7 +185,7 @@ namespace NucpaBalloonsApi.Services
             var pickedUp = await _context.BalloonRequests
                 .Include(b => b.Team)
                 .Where(b => b.Status == BalloonStatus.PickedUp)
-                .OrderByDescending(b => b.PickedUpAt)
+                .OrderByDescending(b => b.StatusChangedAt)
                 .ToListAsync();
 
             return pickedUp.Select(b => new BalloonRequestDTO
@@ -202,12 +196,10 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 Timestamp = b.Timestamp,
                 Status = b.Status.ToString(),
-                DeliveredBy = b.DeliveredBy,
-                DeliveredAt = b.DeliveredAt,
+                StatusChangedBy = b.StatusChangedBy,
+                StatusChangedAt = b.StatusChangedAt,
                 TeamId = b.TeamId,
-                SubmissionId = b.SubmissionId,
-                PickedUpAt = b.PickedUpAt,
-                PickedUpBy = b.PickedUpBy
+                SubmissionId = b.SubmissionId
             }).ToList();
         }
 

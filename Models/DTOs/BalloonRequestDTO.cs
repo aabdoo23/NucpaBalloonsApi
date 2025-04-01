@@ -10,9 +10,7 @@
         public string BalloonColor { get; set; }
         public string Status { get; set; }
         public DateTime Timestamp { get; set; }
-        public DateTime? DeliveredAt { get; set; }
-        public string? DeliveredBy { get; set; }
-        public DateTime? PickedUpAt { get; set; }
-        public string? PickedUpBy { get; set; }
+        public DateTime? StatusChangedAt { get; set; }
+        public string? StatusChangedBy { get; set; }
     }
 }

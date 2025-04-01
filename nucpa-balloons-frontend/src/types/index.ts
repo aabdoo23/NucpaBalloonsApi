@@ -7,16 +7,14 @@ export interface BalloonRequestDTO {
   balloonColor: string;
   status: string;
   timestamp: string;
-  deliveredAt?: string;
-  deliveredBy?: string;
-  pickedUpAt?: string;
-  pickedUpBy?: string;
+  statusChangedAt?: string;
+  statusChangedBy?: string;
 }
 
 export interface BalloonStatusUpdateRequest {
   id: string;
   status: 'Pending' | 'PickedUp' | 'Delivered';
-  deliveredBy?: string;
+  statusChangedBy?: string;
 }
 
 export interface AdminSettingsResponse {

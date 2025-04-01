@@ -3,28 +3,21 @@ import {
   Container,
   Paper,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Button,
   Box,
-  Chip,
   Tabs,
   Tab,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   IconButton,
   Tooltip,
+  Chip,
+  Button,
 } from '@mui/material';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 import { signalRService } from '../services/signalR';
 import { BalloonRequestDTO } from '../types';
 import { getPendingBalloons, getPickedUpBalloons, getDeliveredBalloons, updateBalloonStatus } from '../services/api';
+import { BalloonList } from '../components/BalloonList';
+import { SettingsDialog } from '../components/SettingsDialog';
 
 export const MainPage = () => {
   const [pendingBalloons, setPendingBalloons] = useState<BalloonRequestDTO[]>([]);
@@ -35,15 +28,37 @@ export const MainPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '');
+  const [isSignalRConnected, setIsSignalRConnected] = useState(false);
 
   useEffect(() => {
-    const handleBalloonUpdates = (updates: { Pending: BalloonRequestDTO[], PickedUp: BalloonRequestDTO[], Delivered: BalloonRequestDTO[] }) => {
-      setPendingBalloons(updates.Pending);
-      setPickedUpBalloons(updates.PickedUp);
-      setDeliveredBalloons(updates.Delivered);
+    let mounted = true;
+
+    const handleBalloonStatusChange = (updates: { Pending: BalloonRequestDTO[], PickedUp: BalloonRequestDTO[], Delivered: BalloonRequestDTO[] }) => {
+      console.log('Received balloon status change:', updates);
+      if (!mounted) return;
+
+      if (Array.isArray(updates.Pending)) setPendingBalloons(updates.Pending);
+      if (Array.isArray(updates.PickedUp)) setPickedUpBalloons(updates.PickedUp);
+      if (Array.isArray(updates.Delivered)) setDeliveredBalloons(updates.Delivered);
+    };
+
+    const initializeSignalR = async () => {
+      try {
+        await signalRService.startConnection();
+        if (mounted) {
+          setIsSignalRConnected(true);
+          signalRService.onBalloonStatusChanged(handleBalloonStatusChange);
+        }
+      } catch (error) {
+        console.error('Failed to initialize SignalR:', error);
+        if (mounted) {
+          setError('Failed to establish real-time connection. Updates may be delayed.');
+        }
+      }
     };
 
     const loadInitialData = async () => {
+      if (!mounted) return;
       setIsLoading(true);
       setError(null);
       try {
@@ -52,48 +67,46 @@ export const MainPage = () => {
           getPickedUpBalloons(),
           getDeliveredBalloons(),
         ]);
+        if (!mounted) return;
         setPendingBalloons(Array.isArray(pending) ? pending : []);
         setPickedUpBalloons(Array.isArray(pickedUp) ? pickedUp : []);
         setDeliveredBalloons(Array.isArray(delivered) ? delivered : []);
       } catch (error) {
         console.error('Error loading initial data:', error);
-        setError('Failed to load balloon data. Please make sure the backend server is running.');
-        setPendingBalloons([]);
-        setPickedUpBalloons([]);
-        setDeliveredBalloons([]);
+        if (mounted) {
+          setError('Failed to load balloon data. Please make sure the backend server is running.');
+          setPendingBalloons([]);
+          setPickedUpBalloons([]);
+          setDeliveredBalloons([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadInitialData();
-    signalRService.startConnection();
-    signalRService.onReceiveBalloonUpdates(handleBalloonUpdates);
+    initializeSignalR();
 
     return () => {
-      signalRService.offReceiveBalloonUpdates(handleBalloonUpdates);
-      signalRService.stopConnection();
+      mounted = false;
+      if (signalRService.isConnected()) {
+        signalRService.offBalloonStatusChanged(handleBalloonStatusChange);
+        signalRService.stopConnection();
+      }
     };
   }, []);
 
-  const loadPickedUpBalloons = async () => {
-    try {
-      const balloons = await getPickedUpBalloons();
-      setPickedUpBalloons(Array.isArray(balloons) ? balloons : []);
-    } catch (error) {
-      console.error('Error loading picked up balloons:', error);
-      setPickedUpBalloons([]);
-    }
-  };
-
-  const loadDeliveredBalloons = async () => {
-    try {
-      const balloons = await getDeliveredBalloons();
-      setDeliveredBalloons(Array.isArray(balloons) ? balloons : []);
-    } catch (error) {
-      console.error('Error loading delivered balloons:', error);
-      setDeliveredBalloons([]);
-    }
+  const refreshData = async () => {
+    const [pending, pickedUp, delivered] = await Promise.all([
+      getPendingBalloons(),
+      getPickedUpBalloons(),
+      getDeliveredBalloons(),
+    ]);
+    setPendingBalloons(Array.isArray(pending) ? pending : []);
+    setPickedUpBalloons(Array.isArray(pickedUp) ? pickedUp : []);
+    setDeliveredBalloons(Array.isArray(delivered) ? delivered : []);
   };
 
   const handlePickup = async (balloon: BalloonRequestDTO) => {
@@ -101,10 +114,12 @@ export const MainPage = () => {
       await updateBalloonStatus(balloon.id, {
         id: balloon.id,
         status: 'PickedUp',
-        deliveredBy: userName
+        statusChangedBy: userName
       });
+      // The UI will be updated through SignalR
     } catch (error) {
       console.error('Error picking up balloon:', error);
+      await refreshData(); // Fallback to manual refresh on error
     }
   };
 
@@ -113,10 +128,26 @@ export const MainPage = () => {
       await updateBalloonStatus(balloon.id, {
         id: balloon.id,
         status: 'Delivered',
-        deliveredBy: userName
+        statusChangedBy: userName
       });
+      // The UI will be updated through SignalR
     } catch (error) {
       console.error('Error delivering balloon:', error);
+      await refreshData(); // Fallback to manual refresh on error
+    }
+  };
+
+  const handleRevert = async (balloon: BalloonRequestDTO) => {
+    try {
+      await updateBalloonStatus(balloon.id, {
+        id: balloon.id,
+        status: 'PickedUp',
+        statusChangedBy: userName
+      });
+      // The UI will be updated through SignalR
+    } catch (error) {
+      console.error('Error reverting balloon:', error);
+      await refreshData(); // Fallback to manual refresh on error
     }
   };
 
@@ -132,87 +163,6 @@ export const MainPage = () => {
     localStorage.setItem('userName', userName);
     handleCloseSettingsDialog();
   };
-
-  const renderBalloonList = (balloons: BalloonRequestDTO[], showActions = true) => (
-    <List>
-      {(Array.isArray(balloons) ? balloons : []).map((balloon) => (
-        <ListItem
-          key={balloon.id}
-          sx={{
-            mb: 2,
-            border: '1px solid #e0e0e0',
-            borderRadius: 1,
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-            },
-          }}
-        >
-          <ListItemText
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="h6">
-                  {balloon.teamId} - {balloon.teamName}
-                </Typography>
-                <Chip
-                  label={`Problem ${balloon.problemIndex}`}
-                  color="primary"
-                  size="small"
-                />
-                <Chip
-                  label={balloon.balloonColor}
-                  sx={{
-                    backgroundColor: balloon.balloonColor,
-                    color: 'white',
-                  }}
-                  size="small"
-                />
-              </Box>
-            }
-            secondary={
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  Submitted at: {new Date(balloon.timestamp).toLocaleString()}
-                </Typography>
-                {balloon.pickedUpAt && (
-                  <Typography variant="body2" color="text.secondary">
-                    Picked up by: {balloon.pickedUpBy} at {new Date(balloon.pickedUpAt).toLocaleString()}
-                  </Typography>
-                )}
-                {balloon.deliveredAt && (
-                  <Typography variant="body2" color="text.secondary">
-                    Delivered by: {balloon.deliveredBy} at {new Date(balloon.deliveredAt).toLocaleString()}
-                  </Typography>
-                )}
-              </Box>
-            }
-          />
-          {showActions && (
-            <ListItemSecondaryAction>
-              {balloon.status === 'Pending' && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handlePickup(balloon)}
-                  sx={{ mr: 1 }}
-                >
-                  Pick Up
-                </Button>
-              )}
-              {balloon.status === 'PickedUp' && (
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => handleDelivery(balloon)}
-                >
-                  Deliver
-                </Button>
-              )}
-            </ListItemSecondaryAction>
-          )}
-        </ListItem>
-      ))}
-    </List>
-  );
 
   return (
     <Container maxWidth="md">
@@ -264,34 +214,36 @@ export const MainPage = () => {
                 <Tab label={`Delivered (${deliveredBalloons.length})`} />
               </Tabs>
 
-              {activeTab === 0 && renderBalloonList(pendingBalloons)}
-              {activeTab === 1 && renderBalloonList(pickedUpBalloons)}
-              {activeTab === 2 && renderBalloonList(deliveredBalloons, false)}
+              {activeTab === 0 && (
+                <BalloonList
+                  balloons={pendingBalloons}
+                  onPickup={handlePickup}
+                />
+              )}
+              {activeTab === 1 && (
+                <BalloonList
+                  balloons={pickedUpBalloons}
+                  onDelivery={handleDelivery}
+                />
+              )}
+              {activeTab === 2 && (
+                <BalloonList
+                  balloons={deliveredBalloons}
+                  onRevert={handleRevert}
+                />
+              )}
             </>
           )}
         </Paper>
       </Box>
 
-      <Dialog open={settingsDialogOpen} onClose={handleCloseSettingsDialog}>
-        <DialogTitle>Settings</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Your Name"
-            fullWidth
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            helperText="This name will be used for all status changes"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSettingsDialog}>Cancel</Button>
-          <Button onClick={handleSaveSettings} variant="contained">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SettingsDialog
+        open={settingsDialogOpen}
+        userName={userName}
+        onClose={handleCloseSettingsDialog}
+        onSave={handleSaveSettings}
+        onUserNameChange={setUserName}
+      />
     </Container>
   );
 };
