@@ -1,16 +1,19 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.DTOs;
 using NucpaBalloonsApi.Models.SystemModels;
 using NucpaBalloonsApi.Models.Codeforces;
+using NucpaBalloonsApi.Hubs;
 
 namespace NucpaBalloonsApi.Services
 {
-    public class BalloonService(NucpaDbContext context, IAdminSettingsService adminSettingsService) : IBalloonService
+    public class BalloonService(NucpaDbContext context, IAdminSettingsService adminSettingsService, IHubContext<BalloonHub> hubContext) : IBalloonService
     {
         private readonly NucpaDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
         private readonly IAdminSettingsService _adminSettingsService = adminSettingsService
             ?? throw new ArgumentNullException(nameof(adminSettingsService));
+        private readonly IHubContext<BalloonHub> _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
         private long _lastProcessedSubmissionId = 0;
 
         public async Task<BalloonRequest> CreateBalloonRequestAsync(string teamName, string problemSolved, string balloonColor)
@@ -46,14 +49,34 @@ namespace NucpaBalloonsApi.Services
 
                 if (team == null) {
                     Console.WriteLine("new team, creating one");
-                    team = new Team
-                    {
-                        Id = ,
-                        CodeforcesHandle = submission.Author.Members.FirstOrDefault().Handle,
-                        RoomId = _context.Rooms.First().Id,
-                        AdminSettingsId = activeSettings.Id
-                    };
-                    _context.Teams.Add(team);
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try {
+                        // Try to find the team again within the transaction
+                        team = await _context.Teams
+                            .FirstOrDefaultAsync(t => t.CodeforcesHandle == submission.Author.Members.FirstOrDefault().Handle);
+                        
+                        if (team == null) {
+                            team = new Team
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                CodeforcesHandle = submission.Author.Members.FirstOrDefault().Handle,
+                                RoomId = _context.Rooms.First().Id,
+                                AdminSettingsId = activeSettings.Id
+                            };
+                            _context.Teams.Add(team);
+                            await _context.SaveChangesAsync();
+                        }
+                        await transaction.CommitAsync();
+                    }
+                    catch (Exception) {
+                        await transaction.RollbackAsync();
+                        // If the transaction failed, try to get the team one more time
+                        team = await _context.Teams
+                            .FirstOrDefaultAsync(t => t.CodeforcesHandle == submission.Author.Members.FirstOrDefault().Handle);
+                        if (team == null) {
+                            throw; // If we still can't find the team, rethrow the exception
+                        }
+                    }
                 }
 
                 if (!problemBalloonMaps.TryGetValue(submission.Problem.Index, out var balloonColor)) continue;
@@ -93,8 +116,26 @@ namespace NucpaBalloonsApi.Services
                 request.DeliveredAt = DateTime.UtcNow;
                 request.DeliveredBy = deliveredBy;
             }
+            else if (status == BalloonStatus.PickedUp)
+            {
+                request.PickedUpAt = DateTime.UtcNow;
+                request.PickedUpBy = deliveredBy;
+            }
 
             await _context.SaveChangesAsync();
+
+            // Send real-time updates to all clients
+            var pendingBalloons = await GetPendingBalloonsAsync();
+            var pickedUpBalloons = await GetPickedUpBalloonsAsync();
+            var deliveredBalloons = await GetDeliveredBalloonsAsync();
+
+            await _hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", new
+            {
+                Pending = pendingBalloons,
+                PickedUp = pickedUpBalloons,
+                Delivered = deliveredBalloons
+            });
+
             return request;
         }
 

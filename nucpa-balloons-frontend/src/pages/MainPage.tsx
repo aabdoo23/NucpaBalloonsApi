@@ -37,8 +37,10 @@ export const MainPage = () => {
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '');
 
   useEffect(() => {
-    const handleBalloonUpdates = (newBalloons: BalloonRequestDTO[]) => {
-      setPendingBalloons(newBalloons);
+    const handleBalloonUpdates = (updates: { Pending: BalloonRequestDTO[], PickedUp: BalloonRequestDTO[], Delivered: BalloonRequestDTO[] }) => {
+      setPendingBalloons(updates.Pending);
+      setPickedUpBalloons(updates.PickedUp);
+      setDeliveredBalloons(updates.Delivered);
     };
 
     const loadInitialData = async () => {
@@ -101,8 +103,6 @@ export const MainPage = () => {
         status: 'PickedUp',
         deliveredBy: userName
       });
-      await loadPickedUpBalloons();
-      setPendingBalloons(pendingBalloons.filter(b => b.id !== balloon.id));
     } catch (error) {
       console.error('Error picking up balloon:', error);
     }
@@ -115,8 +115,6 @@ export const MainPage = () => {
         status: 'Delivered',
         deliveredBy: userName
       });
-      await loadDeliveredBalloons();
-      setPickedUpBalloons(pickedUpBalloons.filter(b => b.id !== balloon.id));
     } catch (error) {
       console.error('Error delivering balloon:', error);
     }

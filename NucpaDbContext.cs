@@ -10,5 +10,14 @@ namespace NucpaBalloonsApi
         public DbSet<ProblemBalloonMap> ProblemBalloonMaps { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Team> Teams { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Team>()
+                .HasIndex(t => t.CodeforcesHandle)
+                .IsUnique();
+        }
     }
 }

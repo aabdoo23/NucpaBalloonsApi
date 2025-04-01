@@ -19,9 +19,12 @@ namespace NucpaBalloonsApi.Repositories.Common
 
         public virtual async Task DeleteAsync(string id)
         {
-            var entity = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-            _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
+            var entity = await _dbSet.FindAsync(id);
+            if (entity != null)
+            {
+                _dbSet.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()

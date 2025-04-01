@@ -1,6 +1,12 @@
 import { HubConnectionBuilder, HubConnection, HttpTransportType } from '@microsoft/signalr';
 import { BalloonRequestDTO } from '../types';
 
+interface BalloonUpdates {
+  Pending: BalloonRequestDTO[];
+  PickedUp: BalloonRequestDTO[];
+  Delivered: BalloonRequestDTO[];
+}
+
 class SignalRService {
   private connection: HubConnection | null = null;
   private reconnectAttempts = 0;
@@ -58,14 +64,14 @@ class SignalRService {
     }
   }
 
-  public onReceiveBalloonUpdates(callback: (balloons: BalloonRequestDTO[]) => void) {
+  public onReceiveBalloonUpdates(callback: (updates: BalloonUpdates) => void) {
     if (!this.connection) return;
 
     this.connection.on('ReceiveBalloonUpdates', callback);
     console.log('Registered ReceiveBalloonUpdates callback');
   }
 
-  public offReceiveBalloonUpdates(callback: (balloons: BalloonRequestDTO[]) => void) {
+  public offReceiveBalloonUpdates(callback: (updates: BalloonUpdates) => void) {
     if (!this.connection) return;
 
     this.connection.off('ReceiveBalloonUpdates', callback);
@@ -73,4 +79,4 @@ class SignalRService {
   }
 }
 
-export const signalRService = new SignalRService(); 
+export const signalRService = new SignalRService();

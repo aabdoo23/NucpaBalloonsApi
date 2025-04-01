@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.DependencyInjection;
 using NucpaBalloonsApi.Hubs;
 using NucpaBalloonsApi.Interfaces.Services;
-using NucpaBalloonsApi.Models.DTOs;
 
 namespace NucpaBalloonsApi.Services;
 
@@ -52,4 +50,4 @@ public class BalloonUpdateService : BackgroundService
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
     }
-} 
+}
