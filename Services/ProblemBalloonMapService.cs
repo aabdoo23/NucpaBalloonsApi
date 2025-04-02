@@ -38,6 +38,7 @@ namespace NucpaBalloonsApi.Services
 
         public async Task<ProblemBalloonMap> UpdateAsync(ProblemBalloonMap problemBalloonMap)
         {
+            Console.WriteLine($"Updating problemBalloonMap with id {problemBalloonMap.Id} and problemIndex {problemBalloonMap.ProblemIndex} and Color {problemBalloonMap.BalloonColor}");
             return await _problemBalloonMapRepository.UpdateAsync(problemBalloonMap);
         }
 

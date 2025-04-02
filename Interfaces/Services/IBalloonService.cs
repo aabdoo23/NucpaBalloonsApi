@@ -9,6 +9,7 @@ namespace NucpaBalloonsApi.Interfaces.Services
         Task<BalloonRequest> CreateBalloonRequestAsync(string teamName, string problemSolved, string balloonColor);
         Task<BalloonRequest?> UpdateBalloonStatusAsync(string id, BalloonStatus status, string? deliveredBy = null);
         Task<List<BalloonRequestDTO>> GetPendingBalloonsAsync();
+        Task<List<BalloonRequestDTO>> GetReadyForPickupBalloonsAsync();
         Task<List<BalloonRequestDTO>> GetPickedUpBalloonsAsync();
         Task<List<BalloonRequestDTO>> GetDeliveredBalloonsAsync();
         Task<BalloonStatisticsDTO> GetStatisticsAsync();

@@ -31,11 +31,14 @@ public class BalloonUpdateService(
 
                         var pendingBalloons = await balloonService.GetPendingBalloonsAsync();
                         var pickedUpBalloons = await balloonService.GetPickedUpBalloonsAsync();
+                        var readyForPickupBalloons = await balloonService.GetReadyForPickupBalloonsAsync();
                         var deliveredBalloons = await balloonService.GetDeliveredBalloonsAsync();
+                        Console.WriteLine("Sending to websocket now {0} pending, {1} picked up, {2} delivered", pendingBalloons.Count, pickedUpBalloons.Count, deliveredBalloons.Count);
 
                         await hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", new
                         {
                             Pending = pendingBalloons,
+                            ReadyForPickupBalloons = readyForPickupBalloons,
                             PickedUp = pickedUpBalloons,
                             Delivered = deliveredBalloons
                         }, stoppingToken);

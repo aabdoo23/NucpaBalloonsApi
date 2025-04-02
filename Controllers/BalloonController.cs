@@ -34,6 +34,12 @@ namespace NucpaBalloonsApi.Controllers
             return await _balloonService.GetPickedUpBalloonsAsync();
         }
 
+        [HttpGet("ready-for-pickup")]
+        public async Task<ActionResult<List<BalloonRequestDTO>>> GetReadyForPickupBalloons()
+        {
+            return await _balloonService.GetReadyForPickupBalloonsAsync();
+        }
+
         [HttpGet("delivered")]
         public async Task<ActionResult<List<BalloonRequestDTO>>> GetDeliveredBalloons()
         {

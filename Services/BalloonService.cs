@@ -19,6 +19,18 @@ namespace NucpaBalloonsApi.Services
         private readonly ILogger<BalloonService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private long _lastProcessedSubmissionId = 0;
 
+        private static readonly string[] StandardBalloonColors =
+        [
+            "Red", "Blue", "Green", "Yellow", "Pink", "Purple", "Orange", "White",
+            "Gray", "Cyan", "Magenta", "Brown", "Lime", "Maroon", "Navy", "Olive"
+        ];
+
+        private string GetNextBalloonColor(Dictionary<string, string> existingMaps)
+        {
+            var usedColors = existingMaps.Values.ToHashSet();
+            return StandardBalloonColors.FirstOrDefault(color => !usedColors.Contains(color)) ?? StandardBalloonColors[0];
+        }
+
         public async Task<BalloonRequest> CreateBalloonRequestAsync(string teamName, string problemSolved, string balloonColor)
         {
             var request = new BalloonRequest
@@ -101,13 +113,16 @@ namespace NucpaBalloonsApi.Services
                     }
                 }
 
-                if (!problemBalloonMaps.TryGetValue(submission.Problem.Index, out var balloonColor)){
+                if (!problemBalloonMaps.TryGetValue(submission.Problem.Index, out var balloonColor))
+                {
+                    var nextColor = GetNextBalloonColor(problemBalloonMaps);
                     var defaultProblemBalloonMap = await _problemBalloonMapService.CreateAsync(new ProblemBalloonMapCreateRequestDTO
                     {
                         ProblemIndex = submission.Problem.Index[0].ToString(),
-                        BalloonColor = "Red"
+                        BalloonColor = nextColor
                     });
-                    problemBalloonMaps[defaultProblemBalloonMap.ProblemIndex] = "Red";
+                    problemBalloonMaps[defaultProblemBalloonMap.ProblemIndex] = nextColor;
+                    balloonColor = nextColor;
                 }
 
                 var existingRequest = await _context.BalloonRequests
@@ -124,7 +139,7 @@ namespace NucpaBalloonsApi.Services
                     BalloonColor = balloonColor,
                     ContestId = submission.ContestId,
                     Status = BalloonStatus.Pending,
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.Now
                 };
                 Console.WriteLine("submission id");
                 Console.WriteLine(request.SubmissionId);
@@ -136,6 +151,33 @@ namespace NucpaBalloonsApi.Services
             _lastProcessedSubmissionId = submissions.Max(s => s.Id);
         }
 
+        public async Task<List<BalloonRequestDTO>> GetReadyForPickupBalloonsAsync()
+        {
+            var activeSettings = await _adminSettingsService.GetActiveAdminSettings();
+
+            var readyForPickup = await _context.BalloonRequests
+                .Include(b => b.Team)
+                .Where(b => b.ContestId == activeSettings.ContestId)
+                .Where(b => b.Status == BalloonStatus.ReadyForPickup)
+                .OrderByDescending(b => b.StatusChangedAt)
+                .ToListAsync();
+
+            return readyForPickup.Select(b => new BalloonRequestDTO
+            {
+                Id = b.Id,
+                TeamName = b.Team.CodeforcesHandle,
+                ProblemIndex = b.ProblemIndex,
+                BalloonColor = b.BalloonColor,
+                ContestId = b.ContestId,
+                Timestamp = b.Timestamp,
+                Status = b.Status.ToString(),
+                StatusChangedBy = b.StatusChangedBy,
+                StatusChangedAt = b.StatusChangedAt,
+                TeamId = b.TeamId,
+                SubmissionId = b.SubmissionId
+            }).ToList();
+        }
+
         public async Task<BalloonRequest?> UpdateBalloonStatusAsync(string id, BalloonStatus status, string? deliveredBy = null)
         {
             try
@@ -143,14 +185,27 @@ namespace NucpaBalloonsApi.Services
                 var request = await _context.BalloonRequests.FindAsync(id);
                 if (request == null) return null;
 
+                if (status == BalloonStatus.ReadyForPickup && request.Status != BalloonStatus.Pending)
+                {
+                    throw new InvalidOperationException("Only pending balloons can be marked as ready for pickup");
+                }
+                if (status == BalloonStatus.PickedUp && request.Status != BalloonStatus.ReadyForPickup)
+                {
+                    throw new InvalidOperationException("Only ready for pickup balloons can be picked up");
+                }
+                if (status == BalloonStatus.Delivered && request.Status != BalloonStatus.PickedUp)
+                {
+                    throw new InvalidOperationException("Only picked up balloons can be delivered");
+                }
+
                 request.Status = status;
                 request.StatusChangedAt = DateTime.UtcNow;
                 request.StatusChangedBy = deliveredBy;
 
                 await _context.SaveChangesAsync();
 
-                // Send real-time updates to all clients
                 var pendingBalloons = await GetPendingBalloonsAsync();
+                var readyForPickupBalloons = await GetReadyForPickupBalloonsAsync();
                 var pickedUpBalloons = await GetPickedUpBalloonsAsync();
                 var deliveredBalloons = await GetDeliveredBalloonsAsync();
 
@@ -159,6 +214,7 @@ namespace NucpaBalloonsApi.Services
                     await _hubContext.Clients.All.SendAsync("BalloonStatusChanged", new
                     {
                         Pending = pendingBalloons,
+                        ReadyForPickup = readyForPickupBalloons,
                         PickedUp = pickedUpBalloons,
                         Delivered = deliveredBalloons
                     });
@@ -167,7 +223,6 @@ namespace NucpaBalloonsApi.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to broadcast balloon status update to clients");
-                    // Don't throw here, as the database update was successful
                 }
 
                 return request;

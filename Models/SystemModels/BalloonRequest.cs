@@ -21,6 +21,7 @@ namespace NucpaBalloonsApi.Models.SystemModels
     public enum BalloonStatus
     {
         Pending,
+        ReadyForPickup,
         PickedUp,
         Delivered
     }

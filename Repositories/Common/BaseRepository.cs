@@ -39,14 +39,15 @@ namespace NucpaBalloonsApi.Repositories.Common
 
         public virtual async Task<T> UpdateAsync(T entity)
         {
-            var existingEntity = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == entity.Id);
+            var existingEntity = await _dbSet.FindAsync(entity.Id);
             if (existingEntity != null)
             {
                 _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+                _context.Entry(existingEntity).State = EntityState.Modified;
             }
             else
             {
-                _dbSet.Update(entity);
+                await _dbSet.AddAsync(entity);
                 _context.Entry(entity).State = EntityState.Modified;
             }
 
