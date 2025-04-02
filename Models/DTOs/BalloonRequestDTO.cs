@@ -4,6 +4,7 @@
     {
         public string Id { get; set; }
         public long SubmissionId { get; set; }
+        public int ContestId { get; set; }
         public string TeamId { get; set; }
         public string TeamName { get; set; }
         public char ProblemIndex { get; set; }

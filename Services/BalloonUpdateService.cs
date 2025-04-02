@@ -4,18 +4,12 @@ using NucpaBalloonsApi.Interfaces.Services;
 
 namespace NucpaBalloonsApi.Services;
 
-public class BalloonUpdateService : BackgroundService
+public class BalloonUpdateService(
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<BalloonUpdateService> logger) : BackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<BalloonUpdateService> _logger;
-
-    public BalloonUpdateService(
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<BalloonUpdateService> logger)
-    {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-    }
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+    private readonly ILogger<BalloonUpdateService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -31,14 +25,20 @@ public class BalloonUpdateService : BackgroundService
                     var adminSettingsService = scope.ServiceProvider.GetRequiredService<IAdminSettingsService>();
 
                     var settings = await adminSettingsService.GetActiveAdminSettings();
-                    if (settings.IsEnabled && !string.IsNullOrEmpty(settings.ContestId))
+                    if (settings.IsEnabled && settings.ContestId!=0)
                     {
-                        var contestId = int.Parse(settings.ContestId);
-                        await codeforcesApiService.FetchNewSubmissions(contestId);
+                        await codeforcesApiService.FetchNewSubmissions(settings.ContestId);
 
                         var pendingBalloons = await balloonService.GetPendingBalloonsAsync();
-                        Console.WriteLine(pendingBalloons.Count);
-                        await hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", pendingBalloons, stoppingToken);
+                        var pickedUpBalloons = await balloonService.GetPickedUpBalloonsAsync();
+                        var deliveredBalloons = await balloonService.GetDeliveredBalloonsAsync();
+
+                        await hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", new
+                        {
+                            Pending = pendingBalloons,
+                            PickedUp = pickedUpBalloons,
+                            Delivered = deliveredBalloons
+                        }, stoppingToken);
                     }
                 }
             }

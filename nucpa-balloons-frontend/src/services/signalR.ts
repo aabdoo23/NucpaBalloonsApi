@@ -15,6 +15,7 @@ class SignalRService {
   public async startConnection() {
     if (this.connection) {
       console.log('SignalR connection already exists');
+      console.log(this.connection);
       return;
     }
 

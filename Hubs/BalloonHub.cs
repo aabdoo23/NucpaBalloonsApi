@@ -5,13 +5,15 @@ namespace NucpaBalloonsApi.Hubs;
 
 public class BalloonHub : Hub
 {
-    public async Task UpdateBalloons(List<BalloonRequestDTO> balloons)
+    public async Task UpdateBalloons(object updates)
     {
-        await Clients.All.SendAsync("ReceiveBalloonUpdates", balloons);
+        Console.WriteLine(updates.ToString());
+        await Clients.All.SendAsync("ReceiveBalloonUpdates", updates);
     }
 
-    public async Task UpdateStatus()
+    public async Task UpdateStatus(object updates)
     {
-        await Clients.All.SendAsync("BalloonStatusChanged");
+        Console.WriteLine(updates.ToString());
+        await Clients.All.SendAsync("BalloonStatusChanged", updates);
     }
 } 

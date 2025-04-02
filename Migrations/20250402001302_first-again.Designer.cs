@@ -12,8 +12,8 @@ using NucpaBalloonsApi;
 namespace NucpaBalloonsApi.Migrations
 {
     [DbContext(typeof(NucpaDbContext))]
-    [Migration("20250401041754_Request_status")]
-    partial class Request_status
+    [Migration("20250402001302_first-again")]
+    partial class firstagain
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,9 +40,8 @@ namespace NucpaBalloonsApi.Migrations
                     b.Property<string>("CodeforcesApiSecret")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ContestId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ContestId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
@@ -60,6 +59,9 @@ namespace NucpaBalloonsApi.Migrations
                     b.Property<string>("BalloonColor")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ContestId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ProblemIndex")
                         .IsRequired()

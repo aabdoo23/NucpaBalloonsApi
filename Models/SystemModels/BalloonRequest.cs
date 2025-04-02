@@ -7,6 +7,7 @@ namespace NucpaBalloonsApi.Models.SystemModels
     public class BalloonRequest : BaseEntity
     {
         public long SubmissionId { get; set; }
+        public int ContestId { get; set; }
         public string TeamId { get; set; }
         public Team Team { get; set; }
         public char ProblemIndex { get; set; } 

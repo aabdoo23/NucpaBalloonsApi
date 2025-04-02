@@ -37,9 +37,8 @@ namespace NucpaBalloonsApi.Migrations
                     b.Property<string>("CodeforcesApiSecret")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ContestId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ContestId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
@@ -57,6 +56,9 @@ namespace NucpaBalloonsApi.Migrations
                     b.Property<string>("BalloonColor")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ContestId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ProblemIndex")
                         .IsRequired()
