@@ -4,7 +4,7 @@ using NucpaBalloonsApi.Models.Common;
 namespace NucpaBalloonsApi.Models.SystemModels
 {
     [Index(nameof(SubmissionId), IsUnique = true)]
-    public class BalloonRequest : BaseEntity
+    public class BalloonRequest : StatusableEntity
     {
         public long SubmissionId { get; set; }
         public int ContestId { get; set; }
@@ -14,8 +14,6 @@ namespace NucpaBalloonsApi.Models.SystemModels
         public string BalloonColor { get; set; }
         public DateTime Timestamp { get; set; }
         public BalloonStatus Status { get; set; }
-        public DateTime? StatusChangedAt { get; set; }
-        public string? StatusChangedBy { get; set; }
     }
 
     public enum BalloonStatus
