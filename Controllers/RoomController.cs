@@ -39,10 +39,16 @@ namespace NucpaBalloonsApi.Controllers
             }
         }
 
-        [HttpPost("delete")]
-        public async Task Update(string RoomId)
+        //[HttpDelete("delete")]
+        //public async Task Delete(string RoomId)
+        //{
+        //    await _roomsService.DeleteAsync(RoomId);
+        //}
+
+        [HttpPut("update")]
+        public async Task<Room> Update(Room room)
         {
-            await _roomsService.DeleteAsync(RoomId);
+            return await _roomsService.UpdateAsync(room);
         }
 
     }

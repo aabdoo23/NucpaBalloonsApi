@@ -7,6 +7,5 @@ namespace NucpaBalloonsApi.Interfaces.Repositories
     {
         Task LoadTeamCacheAsync();
         Task<string?> GetTeamIdByCodeforcesHandleAsync(string codeforcesHandle);
-        Task RefreshCacheAsync();
     }
 }

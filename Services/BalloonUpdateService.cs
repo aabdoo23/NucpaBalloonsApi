@@ -8,8 +8,10 @@ public class BalloonUpdateService(
     IServiceScopeFactory serviceScopeFactory,
     ILogger<BalloonUpdateService> logger) : BackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
-    private readonly ILogger<BalloonUpdateService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory 
+        ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+    private readonly ILogger<BalloonUpdateService> _logger = logger 
+        ?? throw new ArgumentNullException(nameof(logger));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -33,12 +35,12 @@ public class BalloonUpdateService(
                         var pickedUpBalloons = await balloonService.GetPickedUpBalloonsAsync();
                         var readyForPickupBalloons = await balloonService.GetReadyForPickupBalloonsAsync();
                         var deliveredBalloons = await balloonService.GetDeliveredBalloonsAsync();
-                        Console.WriteLine("Sending to websocket now {0} pending, {1} picked up, {2} delivered", pendingBalloons.Count, pickedUpBalloons.Count, deliveredBalloons.Count);
+                        Console.WriteLine("Sending to websocket now {0} pending, {1} picked up, {2} delivered, {3} readyForPickup", pendingBalloons.Count, pickedUpBalloons.Count, deliveredBalloons.Count, readyForPickupBalloons.Count);
 
                         await hubContext.Clients.All.SendAsync("ReceiveBalloonUpdates", new
                         {
                             Pending = pendingBalloons,
-                            ReadyForPickupBalloons = readyForPickupBalloons,
+                            ReadyForPickup = readyForPickupBalloons,
                             PickedUp = pickedUpBalloons,
                             Delivered = deliveredBalloons
                         }, stoppingToken);

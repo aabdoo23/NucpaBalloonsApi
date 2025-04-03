@@ -1,13 +1,13 @@
-﻿using NucpaBalloonsApi.Interfaces.Repositories.Common;
+﻿using NucpaBalloonsApi.Interfaces.Repositories;
 using NucpaBalloonsApi.Interfaces.Services;
 using NucpaBalloonsApi.Models.Requests.Rooms;
 using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services
 {
-    public class RoomsService(IBaseRepository<Room> roomsRepository, IAdminSettingsService adminSettingsService) : IRoomsService
+    public class RoomsService(IRoomRepository roomsRepository, IAdminSettingsService adminSettingsService) : IRoomsService
     {
-        private readonly IBaseRepository<Room> _roomsRepository = roomsRepository
+        private readonly IRoomRepository _roomsRepository = roomsRepository
             ?? throw new ArgumentNullException(nameof(roomsRepository));
         private readonly IAdminSettingsService _adminSettingsService = adminSettingsService
             ?? throw new ArgumentNullException(nameof(adminSettingsService));
@@ -15,7 +15,7 @@ namespace NucpaBalloonsApi.Services
         public async Task<Room> CreateAsync(RoomCreateRequestDTO room)
         {
             // Check if a room with this name already exists
-            var existingRoom = await _roomsRepository.GetByIdAsync(room.Name);
+            var existingRoom = await _roomsRepository.GetByRoomName(room.Name);
             if (existingRoom != null)
             {
                 throw new InvalidOperationException($"A room with the name '{room.Name}' already exists.");
@@ -24,7 +24,8 @@ namespace NucpaBalloonsApi.Services
             var adminSettings = await _adminSettingsService.GetActiveAdminSettings();
             var newRoom = new Room
             {
-                Id = room.Name,
+                Id = Guid.NewGuid().ToString(),
+                Name = room.Name,
                 Capacity = room.Capacity,
                 IsAvailable = true,
                 AdminSettingsId = adminSettings.Id
@@ -34,12 +35,18 @@ namespace NucpaBalloonsApi.Services
 
         public async Task<List<Room>> GetAllAsync()
         {
-            return (await _roomsRepository.GetAllAsync()).ToList();
+            var activeAdminSettings = await _adminSettingsService.GetActiveAdminSettings();
+            return (await _roomsRepository.GetAllAsync()).Where(x => x.AdminSettingsId == activeAdminSettings.Id).ToList();
         }
 
         public Task<Room?> GetByIdAsync(string id)
         {
             return _roomsRepository.GetByIdAsync(id);
+        }
+
+        public async Task<Room?> UpdateAsync(Room room)
+        {
+            return await _roomsRepository.UpdateAsync(room);
         }
 
         public async Task DeleteAsync(string roomId)

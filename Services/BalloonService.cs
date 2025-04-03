@@ -9,7 +9,11 @@ using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Services
 {
-    public class BalloonService(NucpaDbContext context, IAdminSettingsService adminSettingsService, IHubContext<BalloonHub> hubContext, ILogger<BalloonService> logger, IProblemBalloonMapService problemBalloonMapService) : IBalloonService
+    public class BalloonService(NucpaDbContext context, 
+        IAdminSettingsService adminSettingsService, 
+        IHubContext<BalloonHub> hubContext, 
+        ILogger<BalloonService> logger, 
+        IProblemBalloonMapService problemBalloonMapService) : IBalloonService
     {
         private readonly NucpaDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
         private readonly IAdminSettingsService _adminSettingsService = adminSettingsService
@@ -79,7 +83,8 @@ namespace NucpaBalloonsApi.Services
                             {
                                 var defaultRoom = new Room
                                 {
-                                    Id = "DefaultRoom",
+                                    Id = Guid.NewGuid().ToString(),
+                                    Name = "Default Room",
                                     IsAvailable = true,
                                     Capacity = 27,
                                     AdminSettingsId = activeSettings.Id
@@ -139,7 +144,7 @@ namespace NucpaBalloonsApi.Services
                     BalloonColor = balloonColor,
                     ContestId = submission.ContestId,
                     Status = BalloonStatus.Pending,
-                    Timestamp = DateTime.Now
+                    Timestamp = submission.Timestamp
                 };
                 Console.WriteLine("submission id");
                 Console.WriteLine(request.SubmissionId);
@@ -157,6 +162,7 @@ namespace NucpaBalloonsApi.Services
 
             var readyForPickup = await _context.BalloonRequests
                 .Include(b => b.Team)
+                .ThenInclude(t => t.Room)
                 .Where(b => b.ContestId == activeSettings.ContestId)
                 .Where(b => b.Status == BalloonStatus.ReadyForPickup)
                 .OrderByDescending(b => b.StatusChangedAt)
@@ -169,6 +175,7 @@ namespace NucpaBalloonsApi.Services
                 ProblemIndex = b.ProblemIndex,
                 BalloonColor = b.BalloonColor,
                 ContestId = b.ContestId,
+                RoomName = b.Team.Room.Name,
                 Timestamp = b.Timestamp,
                 Status = b.Status.ToString(),
                 StatusChangedBy = b.StatusChangedBy,
@@ -185,18 +192,18 @@ namespace NucpaBalloonsApi.Services
                 var request = await _context.BalloonRequests.FindAsync(id);
                 if (request == null) return null;
 
-                if (status == BalloonStatus.ReadyForPickup && request.Status != BalloonStatus.Pending)
-                {
-                    throw new InvalidOperationException("Only pending balloons can be marked as ready for pickup");
-                }
-                if (status == BalloonStatus.PickedUp && request.Status != BalloonStatus.ReadyForPickup)
-                {
-                    throw new InvalidOperationException("Only ready for pickup balloons can be picked up");
-                }
-                if (status == BalloonStatus.Delivered && request.Status != BalloonStatus.PickedUp)
-                {
-                    throw new InvalidOperationException("Only picked up balloons can be delivered");
-                }
+                //if (status == BalloonStatus.ReadyForPickup && request.Status != BalloonStatus.Pending)
+                //{
+                //    throw new InvalidOperationException("Only pending balloons can be marked as ready for pickup");
+                //}
+                //if (status == BalloonStatus.PickedUp && request.Status != BalloonStatus.ReadyForPickup)
+                //{
+                //    throw new InvalidOperationException("Only ready for pickup balloons can be picked up");
+                //}
+                //if (status == BalloonStatus.Delivered && request.Status != BalloonStatus.PickedUp)
+                //{
+                //    throw new InvalidOperationException("Only picked up balloons can be delivered");
+                //}
 
                 request.Status = status;
                 request.StatusChangedAt = DateTime.UtcNow;
@@ -216,7 +223,7 @@ namespace NucpaBalloonsApi.Services
                         Pending = pendingBalloons,
                         ReadyForPickup = readyForPickupBalloons,
                         PickedUp = pickedUpBalloons,
-                        Delivered = deliveredBalloons
+                        Delivered = deliveredBalloons,
                     });
                     _logger.LogInformation("Successfully broadcasted balloon status update to all clients");
                 }
@@ -240,6 +247,7 @@ namespace NucpaBalloonsApi.Services
 
             var pending = await _context.BalloonRequests
                 .Include(b => b.Team)
+                .ThenInclude(t => t.Room)
                 .Where(b => b.ContestId == activeSettings.ContestId)
                 .Where(b => b.Status == BalloonStatus.Pending)
                 .OrderByDescending(b => b.Timestamp)
@@ -255,6 +263,7 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 ContestId = b.ContestId,
                 Timestamp = b.Timestamp,
+                RoomName = b.Team.Room.Name,
                 Status = b.Status.ToString(),
                 StatusChangedBy = b.StatusChangedBy,
                 StatusChangedAt = b.StatusChangedAt,
@@ -270,6 +279,7 @@ namespace NucpaBalloonsApi.Services
             var activeSettings = await _adminSettingsService.GetActiveAdminSettings();
             var delivered = await _context.BalloonRequests
                 .Include(b => b.Team)
+                .ThenInclude(t => t.Room)
                 .Where(b => b.ContestId == activeSettings.ContestId)
                 .Where(b => b.Status == BalloonStatus.Delivered)
                 .OrderByDescending(b => b.StatusChangedAt)
@@ -285,6 +295,7 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 ContestId = b.ContestId,
                 Timestamp = b.Timestamp,
+                RoomName = b.Team.Room.Name,
                 Status = b.Status.ToString(),
                 StatusChangedAt = b.StatusChangedAt,
                 StatusChangedBy = b.StatusChangedBy,
@@ -299,6 +310,7 @@ namespace NucpaBalloonsApi.Services
 
             var pickedUp = await _context.BalloonRequests
                 .Include(b => b.Team)
+                .ThenInclude(t => t.Room)
                 .Where(b => b.ContestId == activeSettings.ContestId)
                 .Where(b => b.Status == BalloonStatus.PickedUp)
                 .OrderByDescending(b => b.StatusChangedAt)
@@ -315,30 +327,13 @@ namespace NucpaBalloonsApi.Services
                 BalloonColor = b.BalloonColor,
                 ContestId = b.ContestId,
                 Timestamp = b.Timestamp,
+                RoomName = b.Team.Room.Name,
                 Status = b.Status.ToString(),
                 StatusChangedBy = b.StatusChangedBy,
                 StatusChangedAt = b.StatusChangedAt,
                 TeamId = b.TeamId,
                 SubmissionId = b.SubmissionId
             }).ToList();
-        }
-
-        public async Task<BalloonStatisticsDTO> GetStatisticsAsync()
-        {
-            var stats = new BalloonStatisticsDTO
-            {
-                TotalPending = await _context.BalloonRequests.CountAsync(b => b.Status == BalloonStatus.Pending),
-                TotalDelivered = await _context.BalloonRequests.CountAsync(b => b.Status == BalloonStatus.Delivered)
-            };
-
-            var colorCounts = await _context.BalloonRequests
-                .Where(b => b.Status == BalloonStatus.Pending)
-                .GroupBy(b => b.BalloonColor)
-                .Select(g => new { Color = g.Key, Count = g.Count() })
-                .ToListAsync();
-
-            stats.ColorCounts = colorCounts.ToDictionary(x => x.Color, x => x.Count);
-            return stats;
         }
     }
 }

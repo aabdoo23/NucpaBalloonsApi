@@ -9,5 +9,6 @@ namespace NucpaBalloonsApi.Interfaces.Services
         Task<Room?> GetByIdAsync(string id);
         Task<Room> CreateAsync(RoomCreateRequestDTO room);
         Task DeleteAsync(string roomId);
+        Task<Room> UpdateAsync(Room room);
     }
 }

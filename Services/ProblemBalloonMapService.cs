@@ -15,6 +15,12 @@ namespace NucpaBalloonsApi.Services
         public async Task<ProblemBalloonMap> CreateAsync(ProblemBalloonMapCreateRequestDTO problemBalloonMap)
         {
             var activeAdminSettings = await _adminSettingsService.GetActiveAdminSettings();
+            var existingMaps = await _problemBalloonMapRepository.GetAllAsync();
+
+            if (existingMaps.Any(map => map.BalloonColor == problemBalloonMap.BalloonColor && map.AdminSettingsId == activeAdminSettings.Id))
+            {
+                throw new InvalidOperationException("A ProblemBalloonMap with the same BalloonColor already exists.");
+            }
 
             var newProblemBalloonMap = new ProblemBalloonMap
             {
@@ -28,7 +34,8 @@ namespace NucpaBalloonsApi.Services
 
         public async Task<List<ProblemBalloonMap>> GetAllAsync()
         {
-            return (await _problemBalloonMapRepository.GetAllAsync()).ToList();
+            var activeAdminSettings = await _adminSettingsService.GetActiveAdminSettings();
+            return (await _problemBalloonMapRepository.GetAllAsync()).Where(x => x.AdminSettingsId == activeAdminSettings.Id).ToList();
         }
 
         public Task<ProblemBalloonMap?> GetByIdAsync(string id)
@@ -38,6 +45,14 @@ namespace NucpaBalloonsApi.Services
 
         public async Task<ProblemBalloonMap> UpdateAsync(ProblemBalloonMap problemBalloonMap)
         {
+            var activeAdminSettings = await _adminSettingsService.GetActiveAdminSettings();
+            var existingMaps = await _problemBalloonMapRepository.GetAllAsync();
+
+            if (existingMaps.Any(map => map.BalloonColor == problemBalloonMap.BalloonColor && map.AdminSettingsId == activeAdminSettings.Id && map.Id != problemBalloonMap.Id))
+            {
+                throw new InvalidOperationException("A ProblemBalloonMap with the same BalloonColor already exists.");
+            }
+
             Console.WriteLine($"Updating problemBalloonMap with id {problemBalloonMap.Id} and problemIndex {problemBalloonMap.ProblemIndex} and Color {problemBalloonMap.BalloonColor}");
             return await _problemBalloonMapRepository.UpdateAsync(problemBalloonMap);
         }

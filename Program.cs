@@ -80,11 +80,10 @@ builder.Services.AddScoped<IProblemBalloonMapService, ProblemBalloonMapService>(
 builder.Services.AddHostedService<BalloonUpdateService>();
 
 builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();
-builder.Services.AddScoped<IBaseRepository<Room>, BaseRepository<Room>>();
-builder.Services.AddScoped<IBaseRepository<Team>, BaseRepository<Team>>();
 builder.Services.AddScoped<IBaseRepository<ProblemBalloonMap>, BaseRepository<ProblemBalloonMap>>();
 builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 
 // Configure HttpClient with longer lifetime
 builder.Services.AddHttpClient<ICodeforcesApiService, CodeforcesApiService>()

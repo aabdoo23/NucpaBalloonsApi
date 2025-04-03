@@ -12,7 +12,6 @@ namespace NucpaBalloonsApi.Interfaces.Services
         Task<List<BalloonRequestDTO>> GetReadyForPickupBalloonsAsync();
         Task<List<BalloonRequestDTO>> GetPickedUpBalloonsAsync();
         Task<List<BalloonRequestDTO>> GetDeliveredBalloonsAsync();
-        Task<BalloonStatisticsDTO> GetStatisticsAsync();
         Task ProcessNewSubmissions(List<Submission> submissions);
     }
 } 

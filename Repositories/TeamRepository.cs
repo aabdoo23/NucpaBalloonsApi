@@ -15,6 +15,22 @@ namespace NucpaBalloonsApi.Repositories
             //_ = LoadTeamCacheAsync();
         }
 
+        public override async Task<IEnumerable<Team>> GetAllAsync()
+        {
+            return await _context.Teams
+                .AsNoTracking()
+                .Include(t => t.Room)
+                .ToListAsync();
+        }
+
+        public override async Task<Team?> GetByIdAsync(string id)
+        {
+            return await _context.Teams
+                .AsNoTracking()
+                .Include(t => t.Room)
+                .FirstOrDefaultAsync(t => t.Id == id);
+        }
+
         public async Task LoadTeamCacheAsync()
         {
             _teamCache = await _context.Teams
@@ -30,6 +46,7 @@ namespace NucpaBalloonsApi.Repositories
 
             var team = await _context.Teams
                 .AsNoTracking() 
+                .Include(t => t.Room)
                 .FirstOrDefaultAsync(t => t.CodeforcesHandle == codeforcesHandle);
 
             if (team == null)
@@ -76,11 +93,6 @@ namespace NucpaBalloonsApi.Repositories
 
             await base.DeleteAsync(id);
             _teamCache.Remove(team.CodeforcesHandle);
-        }
-
-        public async Task RefreshCacheAsync()
-        {
-            await LoadTeamCacheAsync();
         }
     }
 }

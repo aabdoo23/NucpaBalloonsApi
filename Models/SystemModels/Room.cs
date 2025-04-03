@@ -5,11 +5,12 @@ namespace NucpaBalloonsApi.Models.SystemModels
 {
     public class Room : BaseEntity
     {
+        public string Name { get; set; }
         public int? Capacity { get; set; }
         public bool? IsAvailable { get; set; }
         public string AdminSettingsId { get; set; }
         
         [JsonIgnore]
-        public virtual AdminSettings AdminSettings { get; set; }
+        public virtual AdminSettings? AdminSettings { get; set; }
     }
 }

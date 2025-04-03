@@ -45,16 +45,5 @@ namespace NucpaBalloonsApi.Controllers
         {
             return await _balloonService.GetDeliveredBalloonsAsync();
         }
-
-        [HttpGet("statistics")]
-        public async Task<ActionResult<BalloonStatisticsDTO>> GetStatistics()
-        {
-            return await _balloonService.GetStatisticsAsync();
-        }
-
-        private async Task UpdateStatistics()
-        {
-            var stats = await _balloonService.GetStatisticsAsync();
-        }
     }
 } 

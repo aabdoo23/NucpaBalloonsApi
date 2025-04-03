@@ -60,8 +60,6 @@ namespace NucpaBalloonsApi.Services
             }
         }
 
-
-
         public async Task SetActiveAsync(string id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

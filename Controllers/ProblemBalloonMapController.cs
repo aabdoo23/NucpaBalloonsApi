@@ -6,7 +6,7 @@ using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("api/admin/settings/[controller]")]
     public class ProblemBalloonMapController(IProblemBalloonMapService problemBalloonMapService) : ControllerBase
@@ -24,15 +24,29 @@ namespace NucpaBalloonsApi.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] ProblemBalloonMapCreateRequestDTO problemBalloonMap)
         {
-            var settings = await _problemBalloonMapService.CreateAsync(problemBalloonMap);
-            return Ok(settings);
+            try
+            {
+                var settings = await _problemBalloonMapService.CreateAsync(problemBalloonMap);
+                return Ok(settings);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromBody] ProblemBalloonMap problemBalloonMap)
         {
-            var settings = await _problemBalloonMapService.UpdateAsync(problemBalloonMap);
-            return Ok(settings);
+            try
+            {
+                var settings = await _problemBalloonMapService.UpdateAsync(problemBalloonMap);
+                return Ok(settings);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("delete")]
