@@ -27,6 +27,10 @@ namespace NucpaBalloonsApi.Services
             return await _repository.InsertAsync(team);
         }
 
+        public async Task<IList<Team>> GetAllTeams()
+        {
+            return (await _repository.GetAllAsync()).ToList();
+        }
 
         public async Task DeleteTeamById(string teamId)
         {

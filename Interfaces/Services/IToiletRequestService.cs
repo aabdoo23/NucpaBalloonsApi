@@ -1,14 +1,19 @@
-﻿using NucpaBalloonsApi.Models.SystemModels;
+﻿using NucpaBalloonsApi.Models.DTOs;
+using NucpaBalloonsApi.Models.Requests.ToiletRequest;
+using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Interfaces.Services
 {
     public interface IToiletRequestService
     {
-        Task<ToiletRequest> CreateToiletRequestAsync(ToiletRequestDTO toiletRequest);
-        Task<ToiletRequest> GetToiletRequestByIdAsync(string id);
-        Task<ToiletRequest> UpdateToiletRequestAsync(string id, ToiletRequestDTO toiletRequest);
+        Task<ToiletResponseDTO> CreateToiletRequestAsync(ToiletRequestDTO toiletRequest);
+        Task<ToiletResponseDTO> GetToiletRequestByIdAsync(string id);
+        Task<ToiletResponseDTO> UpdateToiletRequestAsync(string id, ToiletRequestDTO toiletRequest);
         Task<bool> DeleteToiletRequestAsync(string id);
-        Task<IList<ToiletRequest>> GetAllToiletRequestsAsync();
-        Task<ToiletRequest> UpdateToiletRequestStatus(string id, ToiletRequestStatusUpdateDTO toiletRequest);
+        Task<IList<ToiletResponseDTO>> GetAllToiletRequestsAsync();
+        Task<IList<ToiletResponseDTO>> GetAllPendingToiletRequestsAsync();
+        Task<IList<ToiletResponseDTO>> GetAllInProgressToiletRequestsAsync();
+        Task<IList<ToiletResponseDTO>> GetAllCompletedToiletRequestsAsync();
+        Task<ToiletResponseDTO> UpdateToiletRequestStatusAsync(ToiletRequestStatusUpdateDTO toiletRequest);
     }
 }

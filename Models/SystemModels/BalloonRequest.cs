@@ -12,7 +12,6 @@ namespace NucpaBalloonsApi.Models.SystemModels
         public Team Team { get; set; }
         public char ProblemIndex { get; set; } 
         public string BalloonColor { get; set; }
-        public DateTime Timestamp { get; set; }
         public BalloonStatus Status { get; set; }
     }
 

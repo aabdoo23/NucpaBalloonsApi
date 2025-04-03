@@ -9,5 +9,6 @@ namespace NucpaBalloonsApi.Interfaces.Services
         Task<Team> UpdateTeamRoom(string teamId, string roomId);
         Task DeleteTeamById(string teamId);
         Task<Team> GetTeamById(string teamId);
+        Task<IList<Team>> GetAllTeams();
     }
 }

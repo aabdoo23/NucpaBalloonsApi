@@ -6,7 +6,7 @@ using NucpaBalloonsApi.Models.SystemModels;
 
 namespace NucpaBalloonsApi.Controllers
 {
-    [Authorize]
+    
     [ApiController]
     [Route("api/admin/settings/[controller]")]
     public class RoomController(IRoomsService roomsService) : ControllerBase
@@ -20,7 +20,7 @@ namespace NucpaBalloonsApi.Controllers
             var rooms = await _roomsService.GetAllAsync();
             return Ok(rooms);
         }
-
+        [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] RoomCreateRequestDTO room)
         {
@@ -44,7 +44,7 @@ namespace NucpaBalloonsApi.Controllers
         //{
         //    await _roomsService.DeleteAsync(RoomId);
         //}
-
+        [Authorize]
         [HttpPut("update")]
         public async Task<Room> Update(Room room)
         {

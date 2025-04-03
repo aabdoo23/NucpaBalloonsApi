@@ -77,6 +77,7 @@ builder.Services.AddScoped<IAdminSettingsService, AdminSettingsService>();
 builder.Services.AddScoped<IRoomsService, RoomsService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
 builder.Services.AddScoped<IProblemBalloonMapService, ProblemBalloonMapService>();
+builder.Services.AddScoped<IToiletRequestService, ToiletRequestService>();
 builder.Services.AddHostedService<BalloonUpdateService>();
 
 builder.Services.AddScoped<IBaseRepository<AdminSettings>, BaseRepository<AdminSettings>>();

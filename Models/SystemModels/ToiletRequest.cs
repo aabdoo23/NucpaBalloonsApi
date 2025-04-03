@@ -6,7 +6,7 @@ namespace NucpaBalloonsApi.Models.SystemModels
     public class ToiletRequest : StatusableEntity
     {
         public string TeamId { get; set; }
-        public virtual Team? Team { get; set; }
+        public virtual Team Team { get; set; }
         public ToiletRequestStatus Status { get; set; } = ToiletRequestStatus.Pending;
         public bool IsMale { get; set; }
         public bool IsUrgent { get; set; }

@@ -6,5 +6,6 @@
         public bool IsMale { get; set; }
         public bool IsUrgent { get; set; }
         public string Comment { get; set; } = string.Empty;
+        public string? StatusChangedBy { get; set; } = string.Empty;
     }
 }

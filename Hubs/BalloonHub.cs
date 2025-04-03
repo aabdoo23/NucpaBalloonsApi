@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using NucpaBalloonsApi.Models.DTOs;
 
 namespace NucpaBalloonsApi.Hubs;
 
@@ -14,4 +13,9 @@ public class BalloonHub : Hub
     {
         await Clients.All.SendAsync("BalloonStatusChanged", updates);
     }
-} 
+
+    public async Task UpdateToiletRequests(object updates)
+    {
+        await Clients.All.SendAsync("ReceiveToiletRequestUpdates", updates);
+    }
+}

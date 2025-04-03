@@ -10,6 +10,7 @@ namespace NucpaBalloonsApi
         public DbSet<ProblemBalloonMap> ProblemBalloonMaps { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Team> Teams { get; set; }
+        public DbSet<ToiletRequest> ToiletRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NucpaBalloonsApi;
 
@@ -11,9 +12,11 @@ using NucpaBalloonsApi;
 namespace NucpaBalloonsApi.Migrations
 {
     [DbContext(typeof(NucpaDbContext))]
-    partial class NucpaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250403173302_toilet-requests")]
+    partial class toiletrequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
