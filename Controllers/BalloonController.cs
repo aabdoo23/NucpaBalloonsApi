@@ -45,5 +45,11 @@ namespace NucpaBalloonsApi.Controllers
         {
             return await _balloonService.GetDeliveredBalloonsAsync();
         }
+
+        [HttpGet("first-solve")]
+        public async Task<ActionResult<List<BalloonRequestDTO>>> GetFirstSolve()
+        {
+            return await _balloonService.GetFirstSolve();
+        }
     }
 } 

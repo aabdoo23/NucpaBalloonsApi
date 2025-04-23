@@ -241,6 +241,37 @@ namespace NucpaBalloonsApi.Services
             }
         }
 
+        public async Task<List<BalloonRequestDTO>> GetFirstSolve()
+        {
+            var activeSettings = await _adminSettingsService.GetActiveAdminSettings();
+            //check for each color in the pending status, if there is no previous submission with the same color for the same problem it should return it
+            var firstSolve = await _context.BalloonRequests
+                .Include(b => b.Team)
+                .ThenInclude(t => t.Room)
+                .Where(b => b.ContestId == activeSettings.ContestId)
+                .Where(b => b.Status == BalloonStatus.Pending)
+                .GroupBy(b => new { b.ProblemIndex, b.BalloonColor })
+                .Select(g => g.FirstOrDefault())
+                .ToListAsync();
+            Console.WriteLine("count of first solve");
+            Console.WriteLine(firstSolve.Count);
+            return firstSolve.Select(b => new BalloonRequestDTO
+            {
+                Id = b.Id,
+                TeamName = b.Team.CodeforcesHandle,
+                ProblemIndex = b.ProblemIndex,
+                BalloonColor = b.BalloonColor,
+                ContestId = b.ContestId,
+                Timestamp = b.Timestamp,
+                RoomName = b.Team.Room.Name,
+                Status = b.Status.ToString(),
+                StatusChangedBy = b.StatusChangedBy,
+                StatusChangedAt = b.StatusChangedAt,
+                TeamId = b.TeamId,
+                SubmissionId = b.SubmissionId
+            }).ToList();
+        }
+
         public async Task<List<BalloonRequestDTO>> GetPendingBalloonsAsync()
         {
             var activeSettings = await _adminSettingsService.GetActiveAdminSettings();

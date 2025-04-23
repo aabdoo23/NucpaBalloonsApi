@@ -121,4 +121,3 @@ app.MapControllers();
 app.MapHub<BalloonHub>("/api/balloonHub");
 
 app.Run();
-

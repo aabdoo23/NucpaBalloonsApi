@@ -69,6 +69,7 @@ public class CodeforcesApiService : ICodeforcesApiService
         {
             var apiSig = GenerateApiSignature(method, parameters);
             parameters["apiSig"] = apiSig;
+            parameters["asManager"] = "true";
 
             var queryString = string.Join("&", parameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
             var url = $"{_baseUrl}/{method}?{queryString}";
@@ -100,6 +101,7 @@ public class CodeforcesApiService : ICodeforcesApiService
         {
             var parameters = new Dictionary<string, string>
             {
+                ["asManager"] = "true",
                 ["contestId"] = contestId.ToString()
             };
 
@@ -119,6 +121,7 @@ public class CodeforcesApiService : ICodeforcesApiService
         {
             var parameters = new Dictionary<string, string>
             {
+                ["asManager"] = "true",
                 ["contestId"] = contestId.ToString(),
                 ["from"] = "1",
                 ["count"] = "100"

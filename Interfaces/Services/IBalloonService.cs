@@ -13,5 +13,6 @@ namespace NucpaBalloonsApi.Interfaces.Services
         Task<List<BalloonRequestDTO>> GetPickedUpBalloonsAsync();
         Task<List<BalloonRequestDTO>> GetDeliveredBalloonsAsync();
         Task ProcessNewSubmissions(List<Submission> submissions);
+        Task<List<BalloonRequestDTO>> GetFirstSolve();
     }
 } 
