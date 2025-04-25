@@ -18,4 +18,9 @@ public class BalloonHub : Hub
     {
         await Clients.All.SendAsync("ReceiveToiletRequestUpdates", updates);
     }
+
+    public async Task SendAnnouncement(string message)
+    {
+        await Clients.All.SendAsync("ReceiveAnnouncement", message);
+    }
 }
